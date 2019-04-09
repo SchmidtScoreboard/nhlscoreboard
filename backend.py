@@ -64,7 +64,7 @@ class Team:
             return Color(0,0,0)
         else:
             #dark backgorund, use a light font
-            return Color(1.0, 1.0, 1.0):web
+            return Color(1.0, 1.0, 1.0)
         
     def __repr__(self):
         return (f'{self.__class__.__name__}('
@@ -110,10 +110,13 @@ class NHL:
       t["locationName"], 
       t["abbreviation"], 
       colorMap.get(t["id"], Color(1.0,1.0,1.0))) for t in team_response["teams"]}
-    self.games = [Game(
-      self.teams[game["teams"]["away"]["team"]["id"]], 
-      self.teams[game["teams"]["home"]["team"]["id"]], 
-      game["gamePk"]) for game in self.schedule["dates"][0]["games"]]
+    if len(self.schedule["dates"]):
+      self.games = [Game(
+        self.teams[game["teams"]["away"]["team"]["id"]], 
+        self.teams[game["teams"]["home"]["team"]["id"]], 
+        game["gamePk"]) for game in self.schedule["dates"][0]["games"]]
+    else:
+      self.games = []
     self.refresh()
 
   def refresh(self):
