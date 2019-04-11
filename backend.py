@@ -67,10 +67,10 @@ class Team:
             return Color(1.0, 1.0, 1.0)
         
     def __repr__(self):
-        return (f'{self.__class__.__name__}('
-           f'{self.team_id!r}, {self.team_name!r}, '
-               f'{self.team_city!r}, {self.abbreviation!r}, '
-               f'{self.team_color!r})')
+        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
+           self.team_id, self.team_name, 
+               self.team_city, self.abbreviation, 
+               self.team_color)
 
 class Game:
     def __init__(self, away, home, game_id):
@@ -93,11 +93,11 @@ class Game:
         self.away_score = away["goals"]
         self.home_score = home["goals"]
     def __repr__(self):
-        return (f'{self.__class__.__name__}('
-            f'{self.away!r}, {self.away_score!r}, '
-            f'{self.home!r}, {self.home_score!r}, '
-            f'{self.game_id!r}, {self.period!r}, '
-            f'{self.current_period_time!r}, {self.periods!r}) ')
+        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
+            self.away, self.away_score,
+            self.home, self.home_score,
+            self.game_id, self.period,
+            self.current_period_time, self.periods)
   
 class NHL:
   def __init__(self):
