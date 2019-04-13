@@ -93,6 +93,8 @@ class Game:
         self.home_score = home["goals"]
         self.away_powerplay = away["powerPlay"]
         self.home_powerplay = home["powerPlay"]
+        self.home_skaters = home["numSkaters"]
+        self.away_skaters = away["numSkaters"]
     def __repr__(self):
         return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
             self.away, self.away_score,

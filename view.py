@@ -25,9 +25,30 @@ class Renderer:
         draw.text((3, 21), game.ordinal, font=team_font, fill=(255, 255, 255))
 
         #add FINAl
-        if(game.current_period_time == "Final"):
+        if game.current_period_time == "Final":
             draw.text((37, 21), game.current_period_time, font=team_font, fill=(255, 255, 0)) 
+
+        #add powerplay
+        message = ""
+        powerplay = False
+        if game.away_powerplay:
+            powerplay = True
+            message = game.away.abbreviation
+        if game.home_powerplay:
+            powerplay = True
+            message = game.home.abbreviation
+        if game.away_powerplay and game.home_powerplay :
+            powerplay = True
+            message = "{}-{}".format(game.away_skaters, game.home_skaters)
+        if powerplay:
+            w, h = team_font.getsize(message) 
+            rightPoint = 63 - w - 3
+            draw.rectangle(((rightPoint,21),(rightPoint+w+2,30)), fill=(255,255,0))
+            draw.text((rightPoint+2,22), message, font=team_font, fill=(0,0,0))
+
         return image
+
+
 
     def render_no_games(self):
         image = Image.new("RGB", (self.width, self.height))
@@ -35,5 +56,5 @@ class Renderer:
         team_font = ImageFont.load("rpi-rgb-led-matrix/fonts/5x8.pil")
         message = "No games today :("
         w, h = team_font.getsize(message)
-        draw.text(((64-w)/2, ((32-h)/2), message, font=team_font, fill=(255, 255, 255))
+        draw.text(((64-w)/2, ((32-h)/2)), message, font=team_font, fill=(255, 255, 255))
         return image
