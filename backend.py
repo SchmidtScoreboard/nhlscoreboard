@@ -49,8 +49,8 @@ colorMap = {
 class Team:
     def __init__(self, team_id, team_name, team_city, abbreviation, team_color):
         self.team_id = team_id
-        self.team_name = team_name
-        self.team_city = team_city
+        self.team_name = team_name.upper()
+        self.team_city = team_city.upper()
         self.abbreviation = abbreviation
         self.team_color = team_color
         
@@ -58,13 +58,12 @@ class Team:
         luminance = ((0.299 * self.team_color.red) 
                          + (0.587 * self.team_color.green) 
                          + (0.114 * self.team_color.blue))
-        print(luminance)
         if luminance > 0.5:
             # light background, use a dark font
             return Color(0,0,0)
         else:
             #dark backgorund, use a light font
-            return Color(1.0, 1.0, 1.0)
+            return Color(255.0, 255.0, 255.0)
         
     def __repr__(self):
         return "{!r}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
@@ -83,8 +82,8 @@ class Game:
         game_url = API + API_FLAG + GAME + str(self.game_id) + LINESCORE
         response = requests.get(url = game_url)
         game_data = response.json()
-    
         self.period = game_data["currentPeriod"] - 1 #subtract one for sensible indices
+        self.ordinal = game_data["currentPeriodOrdinal"] if self.period >= 0 else "PRE"
         self.current_period_time = game_data.get("currentPeriodTimeRemaining", "20:00")
         self.periods = [Period(p["away"]["goals"], p["home"]["goals"]) for p in game_data["periods"]]
         teams = game_data["teams"]
@@ -92,6 +91,8 @@ class Game:
         home = teams["home"]
         self.away_score = away["goals"]
         self.home_score = home["goals"]
+        self.away_powerplay = away["powerPlay"]
+        self.home_powerplay = home["powerPlay"]
     def __repr__(self):
         return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
             self.away, self.away_score,
@@ -123,15 +124,10 @@ class NHL:
     for game in self.games:
       game.refresh()
       
-  def team_playing(schedule, team_id):
-    if self.schedule["totalGames"] > 0:
-        today = self.schedule["dates"][0]
-        games = today["games"]
-        for game in games:
-            teams = game["teams"]
-            if teams["away"]["team"]["id"] == team_id:
-                return True
-            if teams["home"]["team"]["id"] == team_id:
-                return True
-    return False
+  def team_playing(self, team_id):
+    for game in self.games:
+        if game.home.team_id == team_id or game.away.team_id == team_id:
+            if game.current_period_time != "Final":
+                return self.games.index(game)
+    return None
     
