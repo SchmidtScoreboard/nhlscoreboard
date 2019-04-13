@@ -12,7 +12,7 @@ TEAMS = "/teams/"
 
 Period = namedtuple('Period', 'away home')
 Color = namedtuple('Color', 'red green blue')
-colorMap = {
+primaryColorMap = {
     # todo fill in color map 
     1: Color(200, 16, 46),
     2: Color(0, 48, 135),
@@ -46,13 +46,47 @@ colorMap = {
     53: Color(140, 38, 51),
     54: Color(185, 151, 91) }
 
+secondaryColorMap = {
+    # todo fill in color map 
+    1: Color(0, 0, 0),
+    2: Color(252, 76, 2),
+    3: Color(200, 16, 46),
+    4: Color(0, 0, 0),
+    5: Color(0, 0, 0),
+    6: Color(0, 0, 0),
+    7: Color(252, 181, 20),
+    8: Color(0, 30, 98),
+    9: Color(198, 146, 20),
+    10: Color(255, 255, 255),
+    12: Color(162, 169, 175),
+    13: Color(185, 151, 91),
+    14: Color(255, 255, 255),
+    15: Color(200, 16, 46),
+    16: Color(204, 138, 0),
+    17: Color(255, 255, 255),
+    18: Color(4, 30, 66),
+    19: Color(255, 184, 28),
+    20: Color(243, 188, 82),
+    21: Color(111, 38, 61),
+    22: Color(4, 30, 66),
+    23: Color(0, 32, 91),
+    24: Color(249, 86, 2),
+    25: Color(162, 170, 173),
+    26: Color(0, 0, 0),
+    28: Color(229, 114, 0),
+    29: Color(200, 16, 46),
+    30: Color(166, 25, 46),
+    52: Color(162, 170, 173),
+    53: Color(226, 214, 181),
+    54: Color(0, 0, 0) }
 class Team:
-    def __init__(self, team_id, team_name, team_city, abbreviation, team_color):
+    def __init__(self, team_id, team_name, team_city, abbreviation, team_color, secondary_color):
         self.team_id = team_id
         self.team_name = team_name.upper()
         self.team_city = team_city.upper()
         self.abbreviation = abbreviation
         self.team_color = team_color
+        self.team_secondary_color = secondary_color
         
     def text_color(self):
         luminance = ((0.299 * self.team_color.red) 
@@ -66,10 +100,10 @@ class Team:
             return Color(255.0, 255.0, 255.0)
         
     def __repr__(self):
-        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
+        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
            self.team_id, self.team_name, 
                self.team_city, self.abbreviation, 
-               self.team_color)
+               self.team_color, self.team_secondary_color)
 
 class Game:
     def __init__(self, away, home, game_id):
@@ -112,7 +146,8 @@ class NHL:
       t["teamName"], 
       t["locationName"], 
       t["abbreviation"], 
-      colorMap.get(t["id"], Color(1.0,1.0,1.0))) for t in team_response["teams"]}
+      primaryColorMap.get(t["id"], Color(0,0,0)),
+      secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
     if len(self.schedule["dates"]):
       self.games = [Game(
         self.teams[game["teams"]["away"]["team"]["id"]], 
