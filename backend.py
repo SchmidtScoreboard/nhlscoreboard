@@ -1,6 +1,8 @@
 import requests
 import json
 from collections import namedtuple
+import pytz
+from dateutil.parser import *
 
 API = 'https://statsapi.web.nhl.com'
 API_FLAG = '/api/v1/'
@@ -106,18 +108,22 @@ class Team:
                self.team_color, self.team_secondary_color)
 
 class Game:
-    def __init__(self, away, home, game_id):
+    def __init__(self, away, home, game_id, start_time):
         self.away = away
         self.home = home
         
         self.game_id = game_id
+        time = parse(start_time).astimezone(pytz.timezone("America/Chicago"))
+        self.start_hour = time.hour % 12
+        self.start_afternoon = "PM" if time.hour > 12 else "AM"
+        self.start_minute = time.minute
         self.refresh()
     def refresh(self):
         game_url = API + API_FLAG + GAME + str(self.game_id) + LINESCORE
         response = requests.get(url = game_url)
         game_data = response.json()
-        self.period = game_data["currentPeriod"] - 1 #subtract one for sensible indices
-        self.ordinal = game_data["currentPeriodOrdinal"] if self.period >= 0 else "PRE"
+        self.period = game_data["currentPeriod"]
+        self.ordinal = game_data["currentPeriodOrdinal"] if self.period >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
         self.current_period_time = game_data.get("currentPeriodTimeRemaining", "20:00")
         self.periods = [Period(p["away"]["goals"], p["home"]["goals"]) for p in game_data["periods"]]
         teams = game_data["teams"]
@@ -152,7 +158,8 @@ class NHL:
       self.games = [Game(
         self.teams[game["teams"]["away"]["team"]["id"]], 
         self.teams[game["teams"]["home"]["team"]["id"]], 
-        game["gamePk"]) for game in self.schedule["dates"][0]["games"]]
+        game["gamePk"],
+        game["gameDate"]) for game in self.schedule["dates"][0]["games"]]
     else:
       self.games = []
     self.refresh()
@@ -164,7 +171,7 @@ class NHL:
   def team_playing(self, team_id):
     for game in self.games:
         if game.home.team_id == team_id or game.away.team_id == team_id:
-            if game.current_period_time != "Final":
+            if game.current_period_time != "Final" and game.period != 0:
                 return self.games.index(game)
     return None
     

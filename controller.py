@@ -14,22 +14,27 @@ if __name__ == "__main__":
     renderer = Renderer(64, 32)
     nhl = NHL()
 
-    rotateGames = True
-    activeIndex = 0
+    rotate_games = True
+    active_index = 0
+    refresh_count = 0
 
     #main loop
     while(True):
+        if refresh_count > 100:
+            nhl = NHL()
+            refresh_count = 0
         blues = nhl.team_playing(19)
         if blues: #if blues are playing, stick to one page
-            rotateGames = False
-            activeIndex = blues
-        image = renderer.render(nhl.games[activeIndex % len(nhl.games)]) if len(nhl.games) > 0 else renderer.render_no_games()
+            rotate_games = False
+            active_index = blues
+        image = renderer.render(nhl.games[active_index % len(nhl.games)]) if len(nhl.games) > 0 else renderer.render_no_games()
         matrix.Clear()
         matrix.SetImage(image.convert("RGB"))
-        if rotateGames:
-            activeIndex += 1
+        if rotate_games:
+            active_index += 1
             time.sleep(10)
         else:
             time.sleep(1)
         nhl.refresh()
+        refresh_count += 1
     matrix.Clear()
