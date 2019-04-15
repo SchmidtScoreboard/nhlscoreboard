@@ -29,24 +29,24 @@ class Renderer:
         #add FINAl
         if game.current_period_time == "Final":
             draw.text((37, 21), game.current_period_time, font=team_font, fill=(255, 255, 0)) 
-
-        #add powerplay
-        message = ""
-        powerplay = False
-        if game.away_powerplay:
-            powerplay = True
-            message = game.away.abbreviation
-        if game.home_powerplay:
-            powerplay = True
-            message = game.home.abbreviation
-        if 1 < game.away_skaters < 5 and 1 <game.home_skaters < 5:
-            powerplay = True
-            message = "{}-{}".format(game.away_skaters, game.home_skaters)
-        if powerplay:
-            w, h = team_font.getsize(message) 
-            rightPoint = 63 - w - 3
-            draw.rectangle(((rightPoint,21),(rightPoint+w+2,30)), fill=(255,255,0))
-            draw.text((rightPoint+2,22), message, font=team_font, fill=(0,0,0))
+        else:
+            #add powerplay
+            message = ""
+            powerplay = False
+            if game.away_powerplay:
+                powerplay = True
+                message = game.away.abbreviation
+            if game.home_powerplay:
+                powerplay = True
+                message = game.home.abbreviation
+            if 1 < game.away_skaters < 5 and 1 <game.home_skaters < 5:
+                powerplay = True
+                message = "{}-{}".format(game.away_skaters, game.home_skaters)
+            if powerplay:
+                w, h = team_font.getsize(message) 
+                rightPoint = 63 - w - 3
+                draw.rectangle(((rightPoint,21),(rightPoint+w+2,30)), fill=(255,255,0))
+                draw.text((rightPoint+2,22), message, font=team_font, fill=(0,0,0))
 
         return image
 
