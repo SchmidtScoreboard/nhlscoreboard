@@ -39,7 +39,7 @@ class Renderer:
         if game.home_powerplay:
             powerplay = True
             message = game.home.abbreviation
-        if game.away_powerplay and game.home_powerplay :
+        if 1 < game.away_skaters < 5 and 1 <game.home_skaters < 5:
             powerplay = True
             message = "{}-{}".format(game.away_skaters, game.home_skaters)
         if powerplay:

@@ -20,11 +20,12 @@ if __name__ == "__main__":
 
     #main loop
     while(True):
-        if refresh_count > 100:
+        if refresh_count > 20:
+            print("Full refresh")
             nhl = NHL()
             refresh_count = 0
         blues = nhl.team_playing(19)
-        if blues: #if blues are playing, stick to one page
+        if blues !=  None: #if blues are playing, stick to one page
             rotate_games = False
             active_index = blues
         image = renderer.render(nhl.games[active_index % len(nhl.games)]) if len(nhl.games) > 0 else renderer.render_no_games()
