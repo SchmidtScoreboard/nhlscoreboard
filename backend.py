@@ -125,6 +125,8 @@ class Game:
         self.period = game_data["currentPeriod"]
         self.ordinal = game_data["currentPeriodOrdinal"] if self.period >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
         self.current_period_time = game_data.get("currentPeriodTimeRemaining", "20:00")
+        if self.current_period_time == "END":
+            self.ordinal += " INT"
         self.periods = [Period(p["away"]["goals"], p["home"]["goals"]) for p in game_data["periods"]]
         teams = game_data["teams"]
         away = teams["away"]
