@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix 
-from backend import Game, NHL
-from view import Renderer
+from nhl import * 
+from common import *
 import time
 
 if __name__ == "__main__":
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     options.cols = 64
     options.hardware_mapping = "adafruit-hat"
     matrix = RGBMatrix(options = options)
-    renderer = Renderer(64, 32)
+    renderer = NHLRenderer(64, 32)
     nhl = NHL()
 
     rotate_games = True

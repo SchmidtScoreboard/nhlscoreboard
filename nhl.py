@@ -1,8 +1,10 @@
 import requests
 import json
 from collections import namedtuple
+from PIL import Image, ImageDraw, ImageFont
 import pytz
 from dateutil.parser import *
+from common import * 
 
 API = 'https://statsapi.web.nhl.com'
 API_FLAG = '/api/v1/'
@@ -13,7 +15,7 @@ FEED = '/feed/live'
 TEAMS = "/teams/"
 
 Period = namedtuple('Period', 'away home')
-Color = namedtuple('Color', 'red green blue')
+
 primaryColorMap = {
     # todo fill in color map 
     1: Color(200, 16, 46),
@@ -81,52 +83,27 @@ secondaryColorMap = {
     52: Color(162, 170, 173),
     53: Color(226, 214, 181),
     54: Color(0, 0, 0) }
-class Team:
-    def __init__(self, team_id, team_name, team_city, abbreviation, team_color, secondary_color):
-        self.team_id = team_id
-        self.team_name = team_name.upper()
-        self.team_city = team_city.upper()
-        self.abbreviation = abbreviation
-        self.team_color = team_color
-        self.team_secondary_color = secondary_color
+class NHLTeam(Team):
+    def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
+        Team.__init__(self, id, name.upper(), display_name.upper(), city.upper(), abbreviation.upper(), primary_color, secondary_color)
         
-    def text_color(self):
-        luminance = ((0.299 * self.team_color.red) 
-                         + (0.587 * self.team_color.green) 
-                         + (0.114 * self.team_color.blue))
-        if luminance > 0.5:
-            # light background, use a dark font
-            return Color(0,0,0)
-        else:
-            #dark backgorund, use a light font
-            return Color(255.0, 255.0, 255.0)
         
-    def __repr__(self):
-        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
-           self.team_id, self.team_name, 
-               self.team_city, self.abbreviation, 
-               self.team_color, self.team_secondary_color)
 
-class Game:
-    def __init__(self, away, home, game_id, start_time):
-        self.away = away
-        self.home = home
-        
-        self.game_id = game_id
+class NHLGame(Game):
+    def __init__(self, id, away, home, start_time):
+        Game.__init__(self, id, away, home, start_time=start_time)
         time = parse(start_time).astimezone(pytz.timezone("America/Chicago"))
         self.start_hour = time.hour % 12
         self.start_afternoon = "PM" if time.hour > 12 else "AM"
         self.start_minute = time.minute
         self.refresh()
     def refresh(self):
-        game_url = API + API_FLAG + GAME + str(self.game_id) + LINESCORE
+        game_url = API + API_FLAG + GAME + str(self.id) + LINESCORE
         response = requests.get(url = game_url)
         game_data = response.json()
         self.period = game_data["currentPeriod"]
         self.ordinal = game_data["currentPeriodOrdinal"] if self.period >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
         self.current_period_time = game_data.get("currentPeriodTimeRemaining", "20:00")
-        if self.current_period_time == "END":
-            self.ordinal += " INT"
         self.periods = [Period(p["away"]["goals"], p["home"]["goals"]) for p in game_data["periods"]]
         teams = game_data["teams"]
         away = teams["away"]
@@ -137,43 +114,81 @@ class Game:
         self.home_powerplay = home["powerPlay"]
         self.home_skaters = home["numSkaters"]
         self.away_skaters = away["numSkaters"]
-    def __repr__(self):
-        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
-            self.away, self.away_score,
-            self.home, self.home_score,
-            self.game_id, self.period,
-            self.current_period_time, self.periods)
+        if self.current_period_time == "END":
+            if self.period >= 3 and self.away_score != self.home_score:
+                self.status = GameStatus.END
+            else:
+                self.status = GameStatus.INTERMISSION
+                self.ordinal += " INT"
+        else:
+            if self.current_period_time != "20:00":
+                self.status = GameStatus.ACTIVE
+            else:
+                self.status = GameStatus.PREGAME
   
-class NHL:
+
+short_names = {
+    10: "Leafs",
+    12: "Canes",
+    16: "B-hawks",
+    29: "B. Jackets",
+    54: "Knights"
+}
+class NHL(League):
   def __init__(self):
     schedule_url = API + API_FLAG + SCHEDULE
     team_url = API + API_FLAG + TEAMS
     self.schedule = requests.get(url = schedule_url).json()
     team_response = requests.get(url=team_url).json()
-    self.teams = {t["id"]: Team(t["id"], 
+    self.teams = {t["id"]: NHLTeam(t["id"], 
       t["teamName"], 
+      t["teamName"] if len(t["teamName"]) < 10 else short_names[t["id"]],
       t["locationName"], 
       t["abbreviation"], 
       primaryColorMap.get(t["id"], Color(0,0,0)),
       secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
     if len(self.schedule["dates"]):
-      self.games = [Game(
+      self.games = [NHLGame(
+        game["gamePk"],
         self.teams[game["teams"]["away"]["team"]["id"]], 
         self.teams[game["teams"]["home"]["team"]["id"]], 
-        game["gamePk"],
-        game["gameDate"]) for game in self.schedule["dates"][0]["games"]]
+        start_time=game["gameDate"]) for game in self.schedule["dates"][0]["games"]]
     else:
       self.games = []
     self.refresh()
 
-  def refresh(self):
-    for game in self.games:
-      game.refresh()
-      
-  def team_playing(self, team_id):
-    for game in self.games:
-        if game.home.team_id == team_id or game.away.team_id == team_id:
-            if game.current_period_time != "Final" and game.period != 0:
-                return self.games.index(game)
-    return None
-    
+class NHLRenderer(Renderer):
+    def __init__(self, width, height):
+        Renderer.__init__(self, width, height)
+
+
+    def render(self, game):
+        
+        image, draw = self.draw_big_scoreboard(game)
+        team_font = ImageFont.load("/home/pi/nhlscoreboard/rpi-rgb-led-matrix/fonts/5x8.pil")
+        #add period
+        draw.text((5, 21), game.ordinal, font=team_font, fill=(255, 255, 255))
+
+        #add FINAl
+        if game.current_period_time == "Final":
+            draw.text((37, 21), game.current_period_time, font=team_font, fill=(255, 255, 0)) 
+        else:
+            #add powerplay
+            message = ""
+            powerplay = False
+            if game.away_powerplay:
+                powerplay = True
+                message = game.away.abbreviation
+            if game.home_powerplay:
+                powerplay = True
+                message = game.home.abbreviation
+            if 1 < game.away_skaters < 5 and 1 <game.home_skaters < 5:
+                powerplay = True
+                message = "{}-{}".format(game.away_skaters, game.home_skaters)
+            if powerplay:
+                w, h = team_font.getsize(message) 
+                rightPoint = 63 - w - 3
+                draw.rectangle(((rightPoint,21),(rightPoint+w+2,30)), fill=(255,255,0))
+                draw.text((rightPoint+2,22), message, font=team_font, fill=(0,0,0))
+
+        return image
