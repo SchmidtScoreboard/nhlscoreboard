@@ -67,7 +67,7 @@ class Renderer:
     def draw_big_scoreboard(self, game): 
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image) #  let's draw on this image
-        team_font = ImageFont.load("/home/pi/nhlscoreboard/rpi-rgb-led-matrix/fonts/5x8.pil")
+        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
 
         #add teams
         draw.rectangle(((0,0), (64,9)), fill=game.away.primary_color)
