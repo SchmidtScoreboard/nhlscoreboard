@@ -114,7 +114,9 @@ class NHLGame(Game):
         self.home_powerplay = home["powerPlay"]
         self.home_skaters = home["numSkaters"]
         self.away_skaters = away["numSkaters"]
-        if self.current_period_time == "END":
+        if self.current_period_time == "Final":
+            self.status = GameStatus.END
+        elif self.current_period_time == "END":
             if self.period >= 3 and self.away_score != self.home_score:
                 self.status = GameStatus.END
             else:
@@ -130,8 +132,8 @@ class NHLGame(Game):
 short_names = {
     10: "Leafs",
     12: "Canes",
-    16: "B-hawks",
-    29: "B. Jackets",
+    16: "B Hawks",
+    29: "B Jackets",
     54: "Knights"
 }
 class NHL(League):
