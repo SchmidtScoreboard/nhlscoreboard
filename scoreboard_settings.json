@@ -1,0 +1,25 @@
+{
+    "addresses": [
+        "192.168.0.197"
+    ],
+    "screens": [
+        {
+            "name": "NHL",
+            "focus_teams": [
+                19, 18
+            ],
+            "always_rotate": true,
+            "rotation_time": 10
+
+        },
+        {
+            "name": "MLB",
+            "focus_teams": [
+                20
+            ],
+            "always_rotate": false,
+            "rotation_time": 10
+        }
+    ]
+
+}
