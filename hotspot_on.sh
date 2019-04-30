@@ -1,5 +1,8 @@
 #!/bin/bash
-sudo cp /etc/dhcpcd.conf.hotspot /etc/dhcpcd.conf
+sudo cp /home/pi/nhlscoreboard/dhcpcd.conf.hotspot /etc/dhcpcd.conf
+sudo cp /home/pi/nhlscoreboard/dnsmasq.conf /etc/dnsmasq.conf
+sudo cp /home/pi/nhlscoreboard/hostapd.conf /etc/hostapd/hostapd.conf
+sudo cp /home/pi/nhlscoreboard/hostapd /etc/default/hostapd
 sudo systemctl enable hostapd
 sudo systemctl start hostapd
 sudo systemctl enable dnsmasq

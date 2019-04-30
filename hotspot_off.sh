@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo cp /etc/dhcpcd.conf.connect /etc/dhcpcd.conf
+sudo cp /home/pi/nhlscoreboard/dhcpcd.conf.connect /etc/dhcpcd.conf
 sudo systemctl stop hostapd
 sudo systemctl disable hostapd
 sudo systemctl stop dnsmasq
