@@ -38,6 +38,11 @@ def setup_wifi():
     resp = jsonify(success=True)
     return resp
 
+@app.route('/reset_wifi', methods=['POST'])
+def reset_wifi():
+    subprocess.Popen([hotspot_on])
+    resp = jsonify(success=True)
+    return resp
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port=5005)
