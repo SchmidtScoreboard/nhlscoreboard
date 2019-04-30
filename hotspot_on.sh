@@ -1,4 +1,5 @@
 #!/bin/bash
+sleep 2
 sudo cp /home/pi/nhlscoreboard/dhcpcd.conf.hotspot /etc/dhcpcd.conf
 sudo cp /home/pi/nhlscoreboard/dnsmasq.conf /etc/dnsmasq.conf
 sudo cp /home/pi/nhlscoreboard/hostapd.conf /etc/hostapd/hostapd.conf
