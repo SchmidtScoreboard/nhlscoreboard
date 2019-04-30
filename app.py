@@ -4,19 +4,18 @@ from flask import jsonify
 import json
 app = Flask(__name__)
 settings_path = "/home/pi/nhlscoreboard/scoreboard_settings.json"
+wifi_path = "/home/pi/nhlscoreboard/wifi.json"
 
 @app.route('/', methods = ['GET'])
 def root():
-    global settings_path
     with open(settings_path) as out:
         data = json.load(out)
         return jsonify(data)
 
 @app.route('/configure', methods= ['POST'])
 def configure():
-    global settings_path
     content = request.get_json()
-    with open(setting_path) as out:
+    with open(settings_path, "w+") as out:
         json.dump(content, out)
     resp = jsonify(success=True)
     return resp
@@ -24,7 +23,7 @@ def configure():
 @app.route('/wifi', methods=['POST'])
 def setup_wifi():
     content = request.get_json()
-    with open("/home/pi/nhlscoreboard/wifi.json") as out:
+    with open(wifi_path, "w+") as out:
         json.dump(content, out)
     resp = jsonify(success=True)
     return resp
