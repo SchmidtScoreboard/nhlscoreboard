@@ -6,13 +6,13 @@ import pytz
 from dateutil.parser import *
 from common import * 
 
-API = 'https://statsapi.web.mlb.com'
+API = 'http://statsapi.mlb.com'
 API_FLAG = '/api/v1/'
 LINESCORE = '/linescore'
 GAME = '/game/'
 SCHEDULE = 'schedule?sportId=1'
 FEED = '/feed/live'
-TEAMS = "/teams?sportId=1/"
+TEAMS = "/teams?sportId=1"
 
 primaryColorMap = {
     # todo fill in color map 
@@ -85,8 +85,7 @@ class MLBTeam(Team):
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
         Team.__init__(self, id, name.upper(), display_name.upper(), city.upper(), abbreviation.upper(), primary_color, secondary_color)
         
-        
-
+    
 class MLBGame(Game):
     def __init__(self, id, away, home, start_time):
         Game.__init__(self, id, away, home, start_time=start_time)
@@ -99,14 +98,14 @@ class MLBGame(Game):
         game_url = API + API_FLAG + GAME + str(self.id) + LINESCORE
         response = requests.get(url = game_url)
         game_data = response.json()
-        self.inning = game_data["currentInning"]
-        self.is_inning_top = game_data["isTopInning"]
-        self.ordinal = game_data["currentInningOrdinal"] if self.period >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
+        self.inning = game_data.get("currentInning", 0)
+        self.is_inning_top = game_data.get("isTopInning", False)
+        self.ordinal = game_data.get("currentInningOrdinal", "") if self.inning >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
         teams = game_data["teams"]
         away = teams["away"]
         home = teams["home"]
-        self.away_score = away["runs"]
-        self.home_score = home["runs"]
+        self.away_score = away.get("runs", 0)
+        self.home_score = home.get("runs", 0)
         if self.inning <= 0:
             self.status = GameStatus.PREGAME
         elif self.inning >0:
@@ -120,8 +119,8 @@ class MLB(League):
     schedule_url = API + API_FLAG + SCHEDULE
     team_url = API + API_FLAG + TEAMS
     self.schedule = requests.get(url = schedule_url).json()
-    team_response = requests.get(url=team_url).json()
-    self.teams = {t["id"]: NHLTeam(t["id"], 
+    team_response = requests.get(url = team_url).json()
+    self.teams = {t["id"]: MLBTeam(t["id"], 
       t["teamName"], 
       t["teamName"] if len(t["teamName"]) < 10 else short_names[t["id"]],
       t["locationName"], 
@@ -129,7 +128,7 @@ class MLB(League):
       primaryColorMap.get(t["id"], Color(0,0,0)),
       secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
     if len(self.schedule["dates"]):
-      self.games = [NHLGame(
+      self.games = [MLBGame(
         game["gamePk"],
         self.teams[game["teams"]["away"]["team"]["id"]], 
         self.teams[game["teams"]["home"]["team"]["id"]], 
