@@ -45,11 +45,34 @@ class Game:
 
 class League:
   def __init__(self):
+      self.full_refresh_counter = 20
+      self.active_index = 0
+      self.reset()
+  
+  def reset(self):
+      self.full_refresh_counter = 20
+      self.active_index = 0
       pass
 
   def refresh(self):
-    for game in self.games:
-      game.refresh()
+    if self.full_refresh_counter == 0:
+      self.reset()
+    else:
+      for game in self.games:
+        game.refresh()
+    if len(self.games) == 0:
+      self.active_index = -1
+    elif self.team_playing(19) is not None: #TODO store favorite teams
+      active_index = self.team_playing(19)
+    else:
+      self.active_index = (self.active_index + 1) % len(self.games)
+    self.full_refresh_counter -= 1
+
+  def get_image(self):
+    pass
+
+  def get_sleep_time(self):
+    pass
       
   def team_playing(self, team_id):
     for game in self.games:
@@ -57,7 +80,6 @@ class League:
             if game.status == GameStatus.ACTIVE or game.status == GameStatus.INTERMISSION:
                 return self.games.index(game)
     return None
-
 class Renderer:
     def __init__(self, width, height):
         self.width = width

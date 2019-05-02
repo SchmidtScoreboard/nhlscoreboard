@@ -138,6 +138,10 @@ short_names = {
 }
 class NHL(League):
   def __init__(self):
+    super().__init__()
+
+  def reset(self):
+    super().reset()
     schedule_url = API + API_FLAG + SCHEDULE
     team_url = API + API_FLAG + TEAMS
     self.schedule = requests.get(url = schedule_url).json()
@@ -158,6 +162,19 @@ class NHL(League):
     else:
       self.games = []
     self.refresh()
+
+  def get_image(self):
+    renderer = NHLRenderer(64, 32)
+    if self.active_index == -1:
+      return renderer.render_no_games()
+    else:
+      return renderer.render(self.games[self.active_index])
+
+  def get_sleep_time(self):
+    if self.team_playing(19) is not None:
+      return 1
+    else:
+      return 10
 
 class NHLRenderer(Renderer):
     def __init__(self, width, height):
