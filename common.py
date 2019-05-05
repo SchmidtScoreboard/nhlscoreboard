@@ -86,7 +86,7 @@ class Renderer:
         self.height = height
 
 
-    def draw_big_scoreboard(self, game): 
+    def draw_big_scoreboard(self, game):
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image) #  let's draw on this image
         team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
@@ -101,6 +101,24 @@ class Renderer:
         draw.rectangle(((0,10), (2, 19)), fill=game.home.secondary_color)
         draw.text((5, 11), game.home.display_name, font=team_font ,fill=game.home.secondary_color)
         draw.text((57, 11), str(game.home_score), font=team_font, fill=game.home.secondary_color)
+
+        return (image, draw)
+
+    def draw_small_scoreboard(self, game):
+        image = Image.new("RGB", (self.width, self.height))
+        draw = ImageDraw.Draw(image) #  let's draw on this image
+        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/4x6.pil")
+
+        #add teams
+        draw.rectangle(((0,0), (64,6)), fill=game.away.primary_color)
+        draw.rectangle(((0,0), (2, 6)), fill=game.away.secondary_color)
+        draw.text((5, 1), game.away.display_name, font=team_font, fill=game.away.secondary_color)
+        draw.text((57, 1), str(game.away_score), font=team_font, fill=game.away.secondary_color)
+
+        draw.rectangle(((0,7), (64,13)), fill=game.home.primary_color)
+        draw.rectangle(((0,7), (2, 13)), fill=game.home.secondary_color)
+        draw.text((5, 8), game.home.display_name, font=team_font ,fill=game.home.secondary_color)
+        draw.text((57, 8), str(game.home_score), font=team_font, fill=game.home.secondary_color)
 
         return (image, draw)
 
