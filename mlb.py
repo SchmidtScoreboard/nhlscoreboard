@@ -15,7 +15,7 @@ FEED = '/feed/live'
 TEAMS = "/teams?sportId=1"
 
 primaryColorMap = {
-    108: Color(186,, 0,, 33),
+    108: Color(186, 0, 33),
     109: Color(167, 25, 48),
     110: Color(223, 70, 1),
     111: Color(198, 1, 31),
@@ -49,7 +49,7 @@ primaryColorMap = {
 
 
 secondaryColorMap = {
-    108: Color(196,, 206,, 212),
+    108: Color(196, 206, 212),
     109: Color(227, 212, 173),
     110: Color(39, 37, 31),
     111: Color(255, 255, 255),
@@ -160,7 +160,7 @@ class MLBRenderer(Renderer):
 
     def render(self, game):
         
-        image, draw = self.draw_big_scoreboard(game)
+        image, draw = self.draw_small_scoreboard(game)
         team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
 
         return image
