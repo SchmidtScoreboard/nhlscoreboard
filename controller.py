@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     mlb = MLB()
     
-    active_screen = ActiveScreen.MLB
+    active_screen = ActiveScreen.NHL
 
     if active_screen == ActiveScreen.NHL:
         league = nhl

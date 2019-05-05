@@ -186,11 +186,11 @@ class NHLRenderer(Renderer):
         image, draw = self.draw_big_scoreboard(game)
         team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
         #add period
-        draw.text((5, 21), game.ordinal, font=team_font, fill=(255, 255, 255))
+        draw.text((5, 22), game.ordinal, font=team_font, fill=(255, 255, 255))
 
         #add FINAl
         if game.current_period_time == "Final":
-            draw.text((37, 21), game.current_period_time, font=team_font, fill=(255, 255, 0)) 
+            draw.text((37, 22), game.current_period_time, font=team_font, fill=(255, 255, 0)) 
         else:
             #add powerplay
             message = ""
