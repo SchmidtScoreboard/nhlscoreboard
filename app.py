@@ -2,6 +2,8 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from string import Template
+import threading
+import atexit
 import time
 import subprocess
 import json
@@ -11,6 +13,43 @@ wpa_template = "/home/pi/nhlscoreboard/wpa_supplicant.conf.template"
 wpa_path = "/home/pi/nhlscoreboard/wpa_supplicant.conf"
 hotspot_on = "/home/pi/nhlscoreboard/hotspot_on.sh"
 hotspot_off = "/home/pi/nhlscoreboard/hotspot_off.sh"
+
+REFRESH_TIME = 10
+
+common_data = { "elem": 0 }
+
+data_lock = threading.Lock()
+render_thread = threading.Thread()
+
+def create_app():
+    app = Flask(__name__)
+
+    def interrupt():
+        global render_thread
+        with data_lock:
+            render_thread.cancel()
+
+    def draw():
+        global common_data
+        global render_thread
+        with data_lock:
+            common_data["elem"] += 1
+            print(common_data["elem"])
+            
+        render_thread = threading.Timer(REFRESH_TIME, draw(), ())
+        render_thread.start()
+    
+    def start_draw():
+        global render_thread()
+
+        render_thread = threading.Timer(REFRESH_TIME, draw(), ())
+        render_thread.start()
+
+    start_draw()
+    atexit.register(interrupt)
+    return app
+
+
 
 @app.route('/', methods = ['GET'])
 def root():
@@ -45,4 +84,4 @@ def reset_wifi():
     return resp
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port=5005)
+    create_app().run(host = '0.0.0.0', port=5005)
