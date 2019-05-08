@@ -4,6 +4,10 @@ from enum import Enum
 
 Color = namedtuple('Color', 'red green blue')
 
+class ActiveScreen(Enum):
+    NHL = 1
+    MLB = 2
+
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
         self.id = id
