@@ -1,12 +1,13 @@
 from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
+import time
 
 Color = namedtuple('Color', 'red green blue')
 
 class ActiveScreen(Enum):
-    NHL = 1
-    MLB = 2
+    NHL = 0
+    MLB = 1
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
@@ -51,6 +52,7 @@ class League:
   def __init__(self):
       self.full_refresh_counter = 20
       self.active_index = 0
+      self.last_refresh = time.time()
       self.reset()
   
   def reset(self):
@@ -59,18 +61,23 @@ class League:
       pass
 
   def refresh(self):
+    #first, check if we need to do a full refresh
     if self.full_refresh_counter == 0:
       self.reset()
-    else:
+    elif (time.time() - self.last_refresh) > 10:
+      # if it's been more than X seconds since the last refresh, refresh all games
+      self.last_refresh = time.time()
+      self.full_refresh_counter -= 1
       for game in self.games:
         game.refresh()
+
+    # Regardless, move the active game up one, unless a favorite team is playing
     if len(self.games) == 0:
       self.active_index = -1
     elif self.team_playing(19) is not None: #TODO store favorite teams
       active_index = self.team_playing(19)
     else:
       self.active_index = (self.active_index + 1) % len(self.games)
-    self.full_refresh_counter -= 1
 
   def get_image(self):
     pass
