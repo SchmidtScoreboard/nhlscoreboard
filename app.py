@@ -21,7 +21,7 @@ hotspot_off = "/home/pi/nhlscoreboard/hotspot_off.sh"
 
 REFRESH_TIME = 10
 
-common_data = { "elem": 0 }
+common_data = { }
 
 
 active_screen = "ACTIVE_SCREEN"
@@ -29,7 +29,7 @@ leagues = "LEAGUES"
 matrix = "MATRIX"
 nhl = "NHL"
 mlb = "MLB"
-data_lock = threading.Lock()
+data_lock = threading.RLock()
 render_thread = threading.Thread()
 
 def create_app():
@@ -39,16 +39,18 @@ def create_app():
         global render_thread
         render_thread.cancel()
 
-    def draw():
-        global common_data
-        global render_thread
+    def draw_image():
         with data_lock:
-            print("About to draw scheduled")
             image = common_data[leagues][common_data[active_screen]].get_image()
             common_data[matrix].Clear()
             common_data[matrix].SetImage(image.convert("RGB")) 
             common_data[leagues][common_data[active_screen]].refresh()
-            print("Done drawing scheduled")
+        
+
+    def draw():
+        global common_data
+        global render_thread
+        draw_image()
         render_thread = threading.Timer(REFRESH_TIME, draw, ())
             
         render_thread.start()
@@ -80,9 +82,7 @@ def create_app():
             common_data[active_screen] = ActiveScreen(content["sport"])
             print("Swapping to sport: {}".format(common_data[active_screen]))
             common_data[leagues][common_data[active_screen]].refresh()
-            image = common_data[leagues][common_data[active_screen]].get_image()
-            common_data[matrix].Clear()
-            common_data[matrix].SetImage(image.convert("RGB")) 
+            draw_image()
             print("Done swapping")
 
         resp = jsonify(success=True)
@@ -111,6 +111,7 @@ def create_app():
     options.rows = 32
     options.cols = 64
     options.hardware_mapping = "adafruit-hat"
+
     with data_lock:
         common_data[active_screen] = ActiveScreen.MLB #TODO get this from configuration
         common_data[leagues] = {}
