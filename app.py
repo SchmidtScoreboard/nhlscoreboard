@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
 from nhl import *
 from mlb import *
+from refresh import *
 from common import *
 import threading
 import atexit
@@ -25,7 +26,7 @@ common_data = { }
 
 
 active_screen = "ACTIVE_SCREEN"
-leagues = "LEAGUES"
+screens = "SCREENSj"
 matrix = "MATRIX"
 nhl = "NHL"
 mlb = "MLB"
@@ -41,17 +42,17 @@ def create_app():
 
     def draw_image():
         with data_lock:
-            image = common_data[leagues][common_data[active_screen]].get_image()
+            image = common_data[screens][common_data[active_screen]].get_image()
             common_data[matrix].Clear()
             common_data[matrix].SetImage(image.convert("RGB")) 
-            common_data[leagues][common_data[active_screen]].refresh()
+            common_data[screens][common_data[active_screen]].refresh()
         
 
     def draw():
         global common_data
         global render_thread
         draw_image()
-        render_thread = threading.Timer(REFRESH_TIME, draw, ())
+        render_thread = threading.Timer(common_data[screens][common_data[active_screen]].get_sleep_time(), draw, ())
             
         render_thread.start()
 
@@ -113,15 +114,19 @@ def create_app():
     options.hardware_mapping = "adafruit-hat"
 
     with data_lock:
-        common_data[active_screen] = ActiveScreen.MLB #TODO get this from configuration
-        common_data[leagues] = {}
-        print("Refreshing Sports")
-        common_data[leagues][ActiveScreen.NHL] = NHL()
-        print("Got NHL")
-        common_data[leagues][ActiveScreen.MLB] = MLB() 
-        print("Got MLB")
+        common_data[active_screen] = ActiveScreen.REFRESH #TODO get this from configuration
+        common_data[screens] = { ActiveScreen.REFRESH: RefreshScreen("All Sports")}
         common_data[matrix] = RGBMatrix(options = options)
     draw()
+    print("Refreshing Sports")
+    mlb = MLB()
+    print("Got MLB")
+    nhl = NHL()
+    print("Got NHL")
+    with data_lock:
+        common_data[screens][ActiveScreen.NHL] = nhl
+        common_data[screens][ActiveScreen.MLB] = mlb
+        common_data[active_screen] = ActiveScreen.NHL
     atexit.register(interrupt)
     return app
 

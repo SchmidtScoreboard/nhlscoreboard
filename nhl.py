@@ -170,11 +170,6 @@ class NHL(League):
     else:
       return renderer.render(self.games[self.active_index])
 
-  def get_sleep_time(self):
-    if self.team_playing(19) is not None:
-      return 1
-    else:
-      return 10
 
 class NHLRenderer(Renderer):
     def __init__(self, width, height):
