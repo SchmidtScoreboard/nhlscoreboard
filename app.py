@@ -13,16 +13,14 @@ import atexit
 import time
 import subprocess
 import json
+import sys
+import os
+from files import *
+
 app = Flask(__name__)
-settings_path = "/home/pi/nhlscoreboard/scoreboard_settings.json"
-wpa_template = "/home/pi/nhlscoreboard/wpa_supplicant.conf.template"
-wpa_path = "/home/pi/nhlscoreboard/wpa_supplicant.conf"
-hotspot_on = "/home/pi/nhlscoreboard/hotspot_on.sh"
-hotspot_off = "/home/pi/nhlscoreboard/hotspot_off.sh"
 
-REFRESH_TIME = 10
 
-common_data = { }
+common_data = {}
 
 
 active_screen = "ACTIVE_SCREEN"

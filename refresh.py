@@ -1,8 +1,8 @@
-import requests
 import json
 from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from common import * 
+from files import *
 
 class RefreshScreen(Screen):
     def __init__(self, text):
@@ -21,7 +21,7 @@ class RefreshScreen(Screen):
         y = 0
         return x, y
     def get_image(self):
-        font = ImageFont.load("/home/pi/nhlscoreboard/fonts/4x6.pil")
+        font = ImageFont.load(small_font)
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)
         draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=(255, 255, 255), fill=(0, 0, 0))
