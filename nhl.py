@@ -179,7 +179,7 @@ class NHLRenderer(Renderer):
     def render(self, game):
         
         image, draw = self.draw_big_scoreboard(game)
-        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
+        team_font = ImageFont.load(big_font)
         #add period
         draw.text((5, 22), game.ordinal, font=team_font, fill=(255, 255, 255))
 

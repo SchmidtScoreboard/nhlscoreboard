@@ -1,6 +1,7 @@
 from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
+from files import *
 import time
 
 Color = namedtuple('Color', 'red green blue')
@@ -127,7 +128,7 @@ class Renderer:
     def draw_big_scoreboard(self, game):
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image) #  let's draw on this image
-        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
+        team_font = ImageFont.load(big_font)
 
         #add teams
         draw.rectangle(((0,0), (64,9)), fill=game.away.primary_color)
@@ -145,7 +146,7 @@ class Renderer:
     def draw_small_scoreboard(self, game):
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image) #  let's draw on this image
-        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/4x6.pil")
+        team_font = ImageFont.load(small_font)
 
         #add teams
         draw.rectangle(((0,0), (64,6)), fill=game.away.primary_color)

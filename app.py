@@ -3,7 +3,13 @@ from flask import request
 from flask import jsonify
 from string import Template
 from PIL import Image, ImageDraw, ImageFont
-from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
+try:
+    from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
+    print("Running in production mode")
+except:
+    print("Running in test mode")
+    from fake_matrix import *
+
 from nhl import *
 from mlb import *
 from refresh import *

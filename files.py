@@ -1,6 +1,5 @@
 import os, sys
 root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-print(root_path)
 settings_path = os.path.join(root_path, "scoreboard_settings.json")
 wpa_template = os.path.join(root_path, "wpa_supplicant.conf.template")
 wpa_path = os.path.join(root_path, "wpa_supplicant.conf")

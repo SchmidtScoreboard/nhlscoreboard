@@ -155,6 +155,6 @@ class MLBRenderer(Renderer):
     def render(self, game):
         
         image, draw = self.draw_small_scoreboard(game)
-        team_font = ImageFont.load("/home/pi/nhlscoreboard/fonts/5x8.pil")
+        team_font = ImageFont.load(big_font)
 
         return image
