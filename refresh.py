@@ -25,16 +25,11 @@ class RefreshScreen(Screen):
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)
         draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=(255, 255, 255), fill=(0, 0, 0))
-        draw.point(self.get_point(), fill=(0,0,0))
         
-        display_text = "Refreshing {}...".format(self.text)
-        w, h = font.getsize(display_text)
-        if w > 60:
-            display_text = "Refreshing\n{}...".format(self.text)
-            w, h = font.getsize(display_text)
+        w, h = font.getsize(self.text)
         x = self.width/2 - w/2
         y = self.height/2 - h/2
-        draw.text((x,y), display_text, font=font, fill=(128, 128, 128))
+        draw.text((x,y), self.text, font=font, fill=(255, 255, 255))
 
         self.iteration = (self.iteration + 1) % (self.height)
 

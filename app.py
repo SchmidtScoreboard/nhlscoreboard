@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     with data_lock:
         common_data[active_screen] = ActiveScreen.REFRESH 
-        common_data[screens] = {ActiveScreen.REFRESH: RefreshScreen("All Sports")}
+        common_data[screens] = {ActiveScreen.REFRESH: RefreshScreen("Refreshing")}
         common_data[matrix] = RGBMatrix(options=options)
 
     if not testing:
