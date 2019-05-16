@@ -3,10 +3,12 @@ from flask import request
 from flask import jsonify
 from string import Template
 from PIL import Image, ImageDraw, ImageFont
+testing = False
 try:
     from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
     print("Running in production mode")
 except:
+    testing = True
     print("Running in test mode")
     from fake_matrix import *
 
@@ -111,16 +113,6 @@ def create_app():
         subprocess.Popen([hotspot_on])
         resp = jsonify(success=True)
         return resp
-    options = RGBMatrixOptions()
-    options.brightness = 100
-    options.rows = 32
-    options.cols = 64
-    options.hardware_mapping = "adafruit-hat"
-
-    with data_lock:
-        common_data[active_screen] = ActiveScreen.REFRESH #TODO get this from configuration
-        common_data[screens] = { ActiveScreen.REFRESH: RefreshScreen("All Sports")}
-        common_data[matrix] = RGBMatrix(options = options)
     draw()
     print("Refreshing Sports")
     mlb = MLB()
@@ -131,11 +123,29 @@ def create_app():
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
         common_data[active_screen] = ActiveScreen.NHL
+    print("Done setup")
     atexit.register(interrupt)
     return app
 
-
-
+def run_webserver():
+    create_app().run(host='0.0.0.0', port=5005)
 
 if __name__ == '__main__':
-    create_app().run(host = '0.0.0.0', port=5005)
+    options = RGBMatrixOptions()
+    options.brightness = 100
+    options.rows = 32
+    options.cols = 64
+    options.hardware_mapping = "adafruit-hat"
+
+    with data_lock:
+        common_data[active_screen] = ActiveScreen.REFRESH 
+        common_data[screens] = {ActiveScreen.REFRESH: RefreshScreen("All Sports")}
+        common_data[matrix] = RGBMatrix(options=options)
+
+    if not testing:
+        run_webserver()
+    else:
+        web_thread = threading.Thread(target=run_webserver)
+        web_thread.start()
+        common_data[matrix].master.mainloop()
+

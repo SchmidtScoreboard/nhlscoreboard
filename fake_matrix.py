@@ -10,15 +10,12 @@ class RGBMatrix():
         self.height = 128
         self.window = tk.Canvas(self.master, width=self.width, height=self.height)
         self.window.pack()
-        self.master.update()
     def SetImage(self, img):
-        img = RefreshScreen("blah").get_image()
-        img = img.resize((self.width, self.height), Image.ANTIALIAS)
+        img = img.resize((self.width, self.height), Image.BILINEAR)
         tkimg = ImageTk.PhotoImage(img)
         self.window.create_image(0, 0, anchor="nw", image=tkimg)
         self.window.image = tkimg
         self.window.pack()
-        self.master.update()
     def Clear(self):
         pass
 
