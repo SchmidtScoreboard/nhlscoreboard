@@ -121,6 +121,8 @@ class MLB(League):
     super().reset()
     schedule_url = API + API_FLAG + SCHEDULE
     team_url = API + API_FLAG + TEAMS
+    self.teams = []
+    self.games = []
     try:
       self.schedule = requests.get(url = schedule_url).json()
       team_response = requests.get(url = team_url).json()
@@ -147,7 +149,7 @@ class MLB(League):
   def get_image(self):
     renderer = MLBRenderer(64, 32)
     if self.error:
-      return renderer.draw_error("blah")
+      return renderer.draw_error(self.error_message)
     elif self.active_index == -1:
       return renderer.render_no_games()
     else:

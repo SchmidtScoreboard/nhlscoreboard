@@ -2,7 +2,6 @@ from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
 from files import *
-from info import *
 import time
 
 Color = namedtuple('Color', 'red green blue')
@@ -154,8 +153,9 @@ class Renderer:
 
         return (image, draw)
 
-    def draw_small_scoreboard(self, game):
-        image = Image.new("RGB", (self.width, self.height))
+    def draw_small_scoreboard(self, game, image=None):
+        if image is None:
+          image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image) #  let's draw on this image
         team_font = ImageFont.load(small_font)
 
@@ -173,7 +173,35 @@ class Renderer:
         return (image, draw)
 
     def draw_error(self, text):
-      info_screen = InfoScreen(text)
-      return info_screen.get_image()
+      image, draw = self.draw_info(text)
+      return image
+
+    def draw_centered_text(self, text, image=None):
+        if image is None:
+          image = Image.new("RGB", (self.width, self.height))
+        font = ImageFont.load(small_font)
+        draw = ImageDraw.Draw(image)
+        
+        w, h = font.getsize(text)
+        x = self.width/2 - w/2
+        y = self.height/2 - h/2
+        draw.text((x,y), text, font=font, fill=(255, 255, 255))
+
+        return (image, draw)
+    def draw_border(self, color=None, image=None):
+        if image is None:
+          image = Image.new("RGB", (self.width, self.height))
+        draw = ImageDraw.Draw(image)
+        draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=(255, 255, 255), fill=(0, 0, 0))
+
+        return (image, draw)
+      
+    def draw_info(self, text):
+      image, draw = self.draw_border() 
+      image, draw = self.draw_centered_text(text, image=image)
+      return (image, draw)
+
+    def draw_icon(self, icon, image=None):
+
     
 

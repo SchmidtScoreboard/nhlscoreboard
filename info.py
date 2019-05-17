@@ -16,19 +16,10 @@ class InfoScreen(Screen):
         return 1
 
     def get_image(self):
-        font = ImageFont.load(small_font)
-        image = Image.new("RGB", (self.width, self.height))
-        draw = ImageDraw.Draw(image)
-        draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=(255, 255, 255), fill=(0, 0, 0))
-        
-        w, h = font.getsize(self.text)
-        x = self.width/2 - w/2
-        y = self.height/2 - h/2
-        draw.text((x,y), self.text, font=font, fill=(255, 255, 255))
-
-        self.iteration = (self.iteration + 1) % (self.height)
-
+        renderer = Renderer(64, 32)
+        image, draw = renderer.draw_info(self.text)
         return image
+
 
         
 
