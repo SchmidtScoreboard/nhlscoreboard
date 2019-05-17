@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 from common import * 
 from files import *
 
-class RefreshScreen(Screen):
+class InfoScreen(Screen):
     def __init__(self, text):
         super().__init__()
         self.iteration = 0
@@ -13,13 +13,8 @@ class RefreshScreen(Screen):
         self.text = text
 
     def get_sleep_time(self):
-        return 0.03
+        return 1
 
-    def get_point(self):
-        #starting in top left, move one point clockwise each iteration
-        x = self.iteration % self.width
-        y = 0
-        return x, y
     def get_image(self):
         font = ImageFont.load(small_font)
         image = Image.new("RGB", (self.width, self.height))

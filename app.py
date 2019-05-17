@@ -11,10 +11,9 @@ except:
     testing = True
     print("Running in test mode")
     from fake_matrix import *
-
 from nhl import *
 from mlb import *
-from refresh import *
+from info import *
 from common import *
 import threading
 import atexit
@@ -139,7 +138,7 @@ if __name__ == '__main__':
 
     with data_lock:
         common_data[active_screen] = ActiveScreen.REFRESH 
-        common_data[screens] = {ActiveScreen.REFRESH: RefreshScreen("Refreshing")}
+        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Refreshing")}
         common_data[matrix] = RGBMatrix(options=options)
 
     if not testing:

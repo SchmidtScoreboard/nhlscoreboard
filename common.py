@@ -2,6 +2,7 @@ from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
 from files import *
+from info import *
 import time
 
 Color = namedtuple('Color', 'red green blue')
@@ -52,6 +53,8 @@ class Game:
 
 class Screen:
   def __init__(self):
+    self.error = False
+    self.error_message = ""
     pass
 
   def reset(self):
@@ -90,8 +93,12 @@ class League(Screen):
       # if it's been more than X seconds since the last refresh, refresh all games
       self.last_refresh = time.time()
       self.full_refresh_counter -= 1
-      for game in self.games:
-        game.refresh()
+      try:
+        for game in self.games:
+          game.refresh()
+      except:
+        error = "b;ah"
+        self.handle_error(error)
 
     # Regardless, move the active game up one, unless a favorite team is playing
     if len(self.games) == 0:
@@ -118,6 +125,10 @@ class League(Screen):
             if game.status == GameStatus.ACTIVE or game.status == GameStatus.INTERMISSION:
                 return self.games.index(game)
     return None
+
+  def handle_error(self, error):
+    self.error = True
+    self.error_message = "Errored"
 
 class Renderer:
     def __init__(self, width, height):
@@ -160,4 +171,9 @@ class Renderer:
         draw.text((57, 8), str(game.home_score), font=team_font, fill=game.home.secondary_color)
 
         return (image, draw)
+
+    def draw_error(self, text):
+      info_screen = InfoScreen(text)
+      return info_screen.get_image()
+    
 

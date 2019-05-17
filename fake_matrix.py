@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont, ImageTk
-from refresh import *
+from info import *
 import tkinter as tk
 import time
 

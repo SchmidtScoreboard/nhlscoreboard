@@ -144,28 +144,34 @@ class NHL(League):
     super().reset()
     schedule_url = API + API_FLAG + SCHEDULE
     team_url = API + API_FLAG + TEAMS
-    self.schedule = requests.get(url = schedule_url).json()
-    team_response = requests.get(url=team_url).json()
-    self.teams = {t["id"]: NHLTeam(t["id"], 
-      t["teamName"], 
-      t["teamName"] if len(t["teamName"]) < 10 else short_names[t["id"]],
-      t["locationName"], 
-      t["abbreviation"], 
-      primaryColorMap.get(t["id"], Color(0,0,0)),
-      secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
-    if len(self.schedule["dates"]):
-      self.games = [NHLGame(
-        game["gamePk"],
-        self.teams[game["teams"]["away"]["team"]["id"]], 
-        self.teams[game["teams"]["home"]["team"]["id"]], 
-        start_time=game["gameDate"]) for game in self.schedule["dates"][0]["games"]]
-    else:
-      self.games = []
-    self.refresh()
+    try:
+        self.schedule = requests.get(url = schedule_url).json()
+        team_response = requests.get(url=team_url).json()
+        self.teams = {t["id"]: NHLTeam(t["id"], 
+        t["teamName"], 
+        t["teamName"] if len(t["teamName"]) < 10 else short_names[t["id"]],
+        t["locationName"], 
+        t["abbreviation"], 
+        primaryColorMap.get(t["id"], Color(0,0,0)),
+        secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
+        if len(self.schedule["dates"]):
+            self.games = [NHLGame(
+                game["gamePk"],
+                self.teams[game["teams"]["away"]["team"]["id"]], 
+                self.teams[game["teams"]["home"]["team"]["id"]], 
+                start_time=game["gameDate"]) for game in self.schedule["dates"][0]["games"]]
+        else:
+            self.games = []
+        self.refresh()
+    except:
+        error = "blah"
+        self.handle_error(error)
 
   def get_image(self):
     renderer = NHLRenderer(64, 32)
-    if self.active_index == -1:
+    if self.error:
+      return renderer.draw_error("bad")
+    elif self.active_index == -1:
       return renderer.render_no_games()
     else:
       return renderer.render(self.games[self.active_index])
