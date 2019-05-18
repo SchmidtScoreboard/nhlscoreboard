@@ -96,7 +96,7 @@ class League(Screen):
         for game in self.games:
           game.refresh()
       except:
-        error = "b;ah"
+        error = "Connection Error"
         self.handle_error(error)
 
     # Regardless, move the active game up one, unless a favorite team is playing
@@ -127,7 +127,7 @@ class League(Screen):
 
   def handle_error(self, error):
     self.error = True
-    self.error_message = "Errored"
+    self.error_message = error
 
 class Renderer:
     def __init__(self, width, height):
@@ -202,6 +202,7 @@ class Renderer:
       return (image, draw)
 
     def draw_icon(self, icon, image=None):
+        pass
 
     
 

@@ -84,12 +84,13 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
+            print("Got set sport request")
             content = request.get_json()
+            new_screen = ActiveScreen(content["sport"])
+            common_data[screens][new_screen].refresh()
+            print("Fetched new sport")
             common_data[active_screen] = ActiveScreen(content["sport"])
-            print("Swapping to sport: {}".format(common_data[active_screen]))
-            common_data[leagues][common_data[active_screen]].refresh()
             draw_image()
-            print("Done swapping")
 
         resp = jsonify(success=True)
         return resp
