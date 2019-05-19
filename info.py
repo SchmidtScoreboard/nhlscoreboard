@@ -13,7 +13,7 @@ class InfoScreen(Screen):
         self.text = text
 
     def get_sleep_time(self):
-        return 1
+        return 2
 
     def get_image(self):
         renderer = Renderer(64, 32)
