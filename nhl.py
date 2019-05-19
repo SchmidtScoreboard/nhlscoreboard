@@ -174,7 +174,7 @@ class NHL(League):
     if self.error:
       return renderer.draw_error(self.error_message)
     elif self.active_index == -1:
-      return renderer.render_no_games()
+        return renderer.draw_info("No games :(")[0]
     else:
       return renderer.render(self.games[self.active_index])
 
