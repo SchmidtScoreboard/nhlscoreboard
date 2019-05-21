@@ -97,6 +97,10 @@ class MLBGame(Game):
         game_url = API + API_FLAG + GAME + str(self.id) + LINESCORE
         response = requests.get(url = game_url)
         game_data = response.json()
+
+        feed_url = API + API_FLAG + GAME + str(self.id) + FEED
+        response_feed = requests.get(url = feed_url)
+        feed_data = response_feed.json()["gameData"]
         self.inning = game_data.get("currentInning", 0)
         self.is_inning_top = game_data.get("isTopInning", False)
         self.ordinal = game_data.get("currentInningOrdinal", "") if self.inning >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
@@ -109,6 +113,15 @@ class MLBGame(Game):
             self.status = GameStatus.PREGAME
         elif self.inning >0:
             self.status = GameStatus.ACTIVE
+        #TODO check for intermission/between innings?
+        if(feed_data["status"]["abstractGameState"] == "Final"):
+          self.ordinal = "Final"
+          self.status = GameStatus.END
+        if(self.status == GameStatus.ACTIVE):
+          self.balls = game_data["balls"]
+          self.strikes = game_data["strikes"]
+          self.outs = game_data["outs"]
+
   
 
 short_names = {
