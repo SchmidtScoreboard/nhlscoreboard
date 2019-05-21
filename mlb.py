@@ -103,24 +103,31 @@ class MLBGame(Game):
         feed_data = response_feed.json()["gameData"]
         self.inning = game_data.get("currentInning", 0)
         self.is_inning_top = game_data.get("isTopInning", False)
-        self.ordinal = game_data.get("currentInningOrdinal", "") if self.inning >= 1 else "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
         teams = game_data["teams"]
         away = teams["away"]
         home = teams["home"]
         self.away_score = away.get("runs", 0)
         self.home_score = home.get("runs", 0)
-        if self.inning <= 0:
-            self.status = GameStatus.PREGAME
-        elif self.inning >0:
-            self.status = GameStatus.ACTIVE
-        #TODO check for intermission/between innings?
-        if(feed_data["status"]["abstractGameState"] == "Final"):
+        gamestate = feed_data["status"]["abstractGameState"]
+        if gamestate == "FINAL":
           self.ordinal = "Final"
           self.status = GameStatus.END
+        elif gamestate == "Live":
+          self.ordinal = game_data.get("currentInningOrdinal", "")
+          self.status = GameStatus.ACTIVE
+        elif gamestate == "Preview":
+          self.ordinal = "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
+          self.status = GameStatus.PREGAME
+        else:
+          self.ordinal = "ERROR"
+          self.status = GameStatus.INVALID
         if(self.status == GameStatus.ACTIVE):
           self.balls = game_data["balls"]
           self.strikes = game_data["strikes"]
           self.outs = game_data["outs"]
+
+        
+
 
   
 
@@ -184,8 +191,15 @@ class MLBRenderer(Renderer):
 
         if game.status == GameStatus.ACTIVE:
           if game.is_inning_top:
-            draw.point(self.small_up_arrow_pixels(6+w,20))
+            draw.point(self.draw_pixels(small_up_arrow_pixels, 6+w,20))
           else:
-            draw.point(self.small_down_arrow_pixels(6+w, 23))
+            draw.point(self.draw_pixels(small_down_arrow_pixels, 6+w, 23))
+          
+          # draw balls/outs/strikes
+
+          balls_strikes = "{}-{}".format(game.balls, game.strikes)
+          w, h = team_font.getsize(balls_strikes)
+          draw.text((61-w, 19), balls_strikes, font=team_font, fill=(255,255,255))
+          
 
         return image

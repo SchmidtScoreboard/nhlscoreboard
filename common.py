@@ -5,6 +5,10 @@ from files import *
 import time
 
 Color = namedtuple('Color', 'red green blue')
+small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
+small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
+square_3x3_open = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2)]
+square_3x3_filled = square_3x3_open.append((1,1))
 
 class ActiveScreen(Enum):
     NHL = 0
@@ -206,15 +210,14 @@ class Renderer:
       return (image, draw)
 
     def draw_icon(self, icon, image=None):
-        pass
+      pass
+    
+    def draw_pixels(pixels, x, y):
+      return [(x+xi, y-yi) for xi, yi in pixels]
 
-    def small_down_arrow_pixels(self, x, y):
-      vals = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
-      return [(x+xi, y-yi) for xi, yi in vals]
 
-    def small_up_arrow_pixels(self, x, y):
-      vals = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
-      return [(x+xi, y-yi) for xi, yi in vals]
+
+  
 
     
 
