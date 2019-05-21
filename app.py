@@ -124,7 +124,7 @@ def create_app():
     with data_lock:
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[active_screen] = ActiveScreen.NHL
+        common_data[active_screen] = ActiveScreen.MLB
     print("Done setup")
     atexit.register(interrupt)
     return app

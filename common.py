@@ -163,12 +163,16 @@ class Renderer:
         draw.rectangle(((0,0), (64,6)), fill=game.away.primary_color)
         draw.rectangle(((0,0), (2, 6)), fill=game.away.secondary_color)
         draw.text((5, 1), game.away.display_name, font=team_font, fill=game.away.secondary_color)
-        draw.text((57, 1), str(game.away_score), font=team_font, fill=game.away.secondary_color)
+        away_score_message = str(game.away_score)
+        w, h = team_font.getsize(away_score_message)
+        draw.text((61 - w, 1), str(game.away_score), font=team_font, fill=game.away.secondary_color)
 
         draw.rectangle(((0,7), (64,13)), fill=game.home.primary_color)
         draw.rectangle(((0,7), (2, 13)), fill=game.home.secondary_color)
         draw.text((5, 8), game.home.display_name, font=team_font ,fill=game.home.secondary_color)
-        draw.text((57, 8), str(game.home_score), font=team_font, fill=game.home.secondary_color)
+        home_score_message = str(game.home_score)
+        w, h = team_font.getsize(home_score_message)
+        draw.text((61 - w, 8), str(game.home_score), font=team_font, fill=game.home.secondary_color)
 
         return (image, draw)
 
@@ -203,6 +207,14 @@ class Renderer:
 
     def draw_icon(self, icon, image=None):
         pass
+
+    def small_down_arrow_pixels(self, x, y):
+      vals = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
+      return [(x+xi, y-yi) for xi, yi in vals]
+
+    def small_up_arrow_pixels(self, x, y):
+      vals = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
+      return [(x+xi, y-yi) for xi, yi in vals]
 
     
 

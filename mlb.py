@@ -164,5 +164,15 @@ class MLBRenderer(Renderer):
         
         image, draw = self.draw_small_scoreboard(game)
         team_font = ImageFont.load(big_font)
+      
+        #draw the inning or game start time
+        w, h = team_font.getsize(game.ordinal)
+        draw.text((5, 19), game.ordinal, font=team_font, fill=(255, 255, 255))
+
+        if game.status == GameStatus.ACTIVE:
+          if game.is_inning_top:
+            draw.point(self.small_up_arrow_pixels(6+w,20))
+          else:
+            draw.point(self.small_down_arrow_pixels(6+w, 23))
 
         return image
