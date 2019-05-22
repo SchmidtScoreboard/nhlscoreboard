@@ -109,7 +109,9 @@ class MLBGame(Game):
         self.away_score = away.get("runs", 0)
         self.home_score = home.get("runs", 0)
         gamestate = feed_data["status"]["abstractGameState"]
-        if gamestate == "FINAL":
+        print(feed_data["status"])
+        print(str(self.inning), game_data.get("inningState", ""))
+        if gamestate == "Final":
           self.ordinal = "Final"
           self.status = GameStatus.END
         elif gamestate == "Live":
@@ -125,6 +127,20 @@ class MLBGame(Game):
           self.balls = game_data["balls"]
           self.strikes = game_data["strikes"]
           self.outs = game_data["outs"]
+        
+        if(self.status == GameStatus.ACTIVE and self.outs == 3):
+          #first check if the game is over
+          if (self.inning >= 9 and self.is_inning_top and self.home_score > self.away_score) or (self.inning >= 9 and not self.is_inning_top and self.home_score != self.away_score):
+            print("Detected game end")
+            self.ordinal = "Final" 
+            self.status = GameStatus.END
+          elif self.is_inning_top:
+            self.status = GameStatus.INTERMISSION
+            self.ordinal = "Middle {}".format(self.ordinal)
+          else:
+            self.status = GameStatus.INTERMISSION
+            self.ordinal = "End {}".format(self.ordinal)
+
 
         
 
@@ -198,8 +214,16 @@ class MLBRenderer(Renderer):
           # draw balls/outs/strikes
 
           balls_strikes = "{}-{}".format(game.balls, game.strikes)
-          w, h = team_font.getsize(balls_strikes)
-          draw.text((61-w, 19), balls_strikes, font=team_font, fill=(255,255,255))
+          small = ImageFont.load(small_font)
+          w, h = small.getsize(balls_strikes)
+          draw.text((61-w, 19), balls_strikes, font=small, fill=(255,255,255))
           
+          for i in range(0, 3):
+            x = 61 - w + i * 4
+            y = 19 + h + 3
+            if game.outs > i:
+              draw.point(self.draw_pixels(square_3x3_filled, x, y))
+            else:
+              draw.point(self.draw_pixels(square_3x3_open, x, y))
 
         return image
