@@ -94,7 +94,9 @@ class NHLGame(Game):
         Game.__init__(self, id, away, home, start_time=start_time)
         time = parse(start_time).astimezone(pytz.timezone("America/Chicago"))
         self.start_hour = time.hour % 12
-        self.start_afternoon = "PM" if time.hour > 12 else "AM"
+        if self.start_hour == 0:
+            self.start_hour = 12
+        self.start_afternoon = "PM" if time.hour >= 12 else "AM"
         self.start_minute = time.minute
         self.refresh()
     def refresh(self):
