@@ -4,13 +4,6 @@ from flask import jsonify
 from string import Template
 from PIL import Image, ImageDraw, ImageFont
 testing = False
-try:
-    from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
-    print("Running in production mode")
-except:
-    testing = True
-    print("Running in test mode")
-    from fake_matrix import *
 from nhl import *
 from mlb import *
 from info import *
@@ -23,6 +16,16 @@ import json
 import sys
 import os
 from files import *
+import logging
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+try:
+    from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
+    log.info("Running in production mode")
+except:
+    testing = True
+    log.info("Running in test mode")
+    from fake_matrix import *
 
 app = Flask(__name__)
 
@@ -47,10 +50,10 @@ def create_app():
 
     def draw_image():
         with data_lock:
+            common_data[screens][common_data[active_screen]].refresh()
             image = common_data[screens][common_data[active_screen]].get_image()
             common_data[matrix].Clear()
             common_data[matrix].SetImage(image.convert("RGB")) 
-            common_data[screens][common_data[active_screen]].refresh()
         
 
     def draw():
@@ -72,10 +75,11 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
-            print("configuring")
-        content = request.get_json()
-        with open(settings_path, "w+") as out:
-            json.dump(content, out)
+            log.info("configuring")
+            content = request.get_json()
+            with open(settings_path, "w+") as out:
+                json.dump(content, out)
+            # TODO refresh the entire thing?
         resp = jsonify(success=True)
         return resp
 
@@ -87,14 +91,17 @@ def create_app():
             interrupt()
             common_data[active_screen] = ActiveScreen.REFRESH
             draw()
-            print("Got set sport request")
             content = request.get_json()
             new_screen = ActiveScreen(content["sport"])
-            common_data[screens][new_screen].refresh()
-            print("Fetched new sport")
             common_data[active_screen] = ActiveScreen(content["sport"])
+            #Update the file    
+            with open(settings_path) as f:
+                settings = json.load(f)
+                settings["active_screen"] = common_data[active_screen].value
+            with open(settings_path, "w+") as f:
+                json.dump(settings, f)
 
-        resp = jsonify(success=True)
+        resp = jsonify(settings)
         return resp
 
 
@@ -115,17 +122,22 @@ def create_app():
         subprocess.Popen([hotspot_on])
         resp = jsonify(success=True)
         return resp
+
+    def get_settings():
+        with open(settings_path) as f:
+            settings = json.load(f) 
+        return settings
     draw()
-    print("Refreshing Sports")
+    log.info("Refreshing Sports")
     mlb = MLB()
-    print("Got MLB")
+    log.info("Got MLB")
     nhl = NHL()
-    print("Got NHL")
+    log.info("Got NHL")
     with data_lock:
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[active_screen] = ActiveScreen.MLB
-    print("Done setup")
+        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+    log.info("Done setup")
     atexit.register(interrupt)
     return app
 
@@ -133,6 +145,7 @@ def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)
 
 if __name__ == '__main__':
+    
     options = RGBMatrixOptions()
     options.brightness = 100
     options.rows = 32

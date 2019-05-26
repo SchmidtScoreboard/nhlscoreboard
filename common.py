@@ -2,8 +2,9 @@ from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
 from files import *
+import logging
 import time
-
+log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
 small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
 small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
@@ -92,8 +93,10 @@ class League(Screen):
     #first, check if we need to do a full refresh
     if self.full_refresh_counter == 0:
       self.reset()
+      log.info("Performing full refresh")
     elif (time.time() - self.last_refresh) > self.get_refresh_time():
       # if it's been more than X seconds since the last refresh, refresh all games
+      log.info("Performing refresh")
       self.last_refresh = time.time()
       self.full_refresh_counter -= 1
       try:

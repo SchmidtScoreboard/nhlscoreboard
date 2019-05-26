@@ -109,8 +109,6 @@ class MLBGame(Game):
         self.away_score = away.get("runs", 0)
         self.home_score = home.get("runs", 0)
         gamestate = feed_data["status"]["abstractGameState"]
-        print(feed_data["status"])
-        print(str(self.inning), game_data.get("inningState", ""))
         if gamestate == "Final":
           self.ordinal = "Final"
           self.status = GameStatus.END
@@ -131,7 +129,7 @@ class MLBGame(Game):
         if(self.status == GameStatus.ACTIVE and self.outs == 3):
           #first check if the game is over
           if (self.inning >= 9 and self.is_inning_top and self.home_score > self.away_score) or (self.inning >= 9 and not self.is_inning_top and self.home_score != self.away_score):
-            print("Detected game end")
+            log.info("Detected game end")
             self.ordinal = "Final" 
             self.status = GameStatus.END
           elif self.is_inning_top:
@@ -140,12 +138,6 @@ class MLBGame(Game):
           else:
             self.status = GameStatus.INTERMISSION
             self.ordinal = "End {}".format(self.ordinal)
-
-
-        
-
-
-  
 
 short_names = {
 }
