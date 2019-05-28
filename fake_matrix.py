@@ -17,7 +17,8 @@ class RGBMatrix():
         self.window.image = tkimg
         self.window.pack()
     def Clear(self):
-        pass
+        self.window.create_rectangle(0,0,self.width, self.height, fill="black")
+        self.window.pack()
 
 class RGBMatrixOptions():
     def __init__(self):
