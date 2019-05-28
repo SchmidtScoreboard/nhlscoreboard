@@ -34,8 +34,9 @@ common_data = {}
 
 
 active_screen = "ACTIVE_SCREEN"
-screens = "SCREENSj"
+screens = "SCREENS"
 matrix = "MATRIX"
+screen_on = "SCREEN_ON"
 nhl = "NHL"
 mlb = "MLB"
 data_lock = threading.RLock()
@@ -50,10 +51,13 @@ def create_app():
 
     def draw_image():
         with data_lock:
-            common_data[screens][common_data[active_screen]].refresh()
-            image = common_data[screens][common_data[active_screen]].get_image()
-            common_data[matrix].Clear()
-            common_data[matrix].SetImage(image.convert("RGB")) 
+            if common_data[screen_on]:
+                common_data[screens][common_data[active_screen]].refresh()
+                image = common_data[screens][common_data[active_screen]].get_image()
+                common_data[matrix].Clear()
+                common_data[matrix].SetImage(image.convert("RGB")) 
+            else:
+                common_data[matrix].Clear()
         
 
     def draw():
@@ -79,9 +83,27 @@ def create_app():
             content = request.get_json()
             with open(settings_path, "w+") as out:
                 json.dump(content, out)
-            # TODO refresh the entire thing?
+            # TODO restart the entire thing?
         resp = jsonify(success=True)
         return resp
+
+    @app.route('/setPower', methods=['POST'])
+    def setPower():
+        global common_data
+        global data_lock
+        with data_lock:
+            interrupt()
+            content = request.get_json()
+            common_data[screen_on] = content["screen_on"]
+            draw()
+            with open(settings_path) as f:
+                settings = json.load(f)
+                settings["screen_on"] = common_data[screen_on]
+            with open(settings_path, "w+") as f:
+                json.dump(settings, f)
+        resp = jsonify(settings)
+        return resp
+    
 
     @app.route('/setSport', methods=['POST'])
     def setSport():
@@ -90,6 +112,7 @@ def create_app():
         with data_lock:
             interrupt()
             common_data[active_screen] = ActiveScreen.REFRESH
+            common_data[screen_on] = True
             draw()
             content = request.get_json()
             new_screen = ActiveScreen(content["sport"])
@@ -98,11 +121,14 @@ def create_app():
             with open(settings_path) as f:
                 settings = json.load(f)
                 settings["active_screen"] = common_data[active_screen].value
+                settings["screen_on"] = common_data[screen_on]
             with open(settings_path, "w+") as f:
                 json.dump(settings, f)
 
         resp = jsonify(settings)
         return resp
+
+    @app.route
 
 
     @app.route('/wifi', methods=['POST'])
@@ -127,6 +153,7 @@ def create_app():
         with open(settings_path) as f:
             settings = json.load(f) 
         return settings
+    common_data[screen_on] = True # Starting the service ALWAYS turns the screen on
     draw()
     log.info("Refreshing Sports")
     mlb = MLB()
