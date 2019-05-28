@@ -7,6 +7,7 @@ testing = False
 from nhl import *
 from mlb import *
 from info import *
+from qr import *
 from common import *
 import threading
 import atexit
@@ -163,7 +164,9 @@ def create_app():
     with data_lock:
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+        common_data[screens][ActiveScreen.QR] = QRScreen("Text", "Message")
+        #common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+        common_data[active_screen] = ActiveScreen.QR
     log.info("Done setup")
     atexit.register(interrupt)
     return app

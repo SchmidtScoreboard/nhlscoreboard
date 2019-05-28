@@ -15,6 +15,7 @@ class ActiveScreen(Enum):
     NHL = 0
     MLB = 1
     REFRESH = 100
+    QR = 101
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
