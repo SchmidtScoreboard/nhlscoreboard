@@ -173,7 +173,7 @@ class MLB(League):
         self.games = []
       self.refresh()
     except:
-      error = "blah"
+      error = "Disconnected :("
       self.handle_error(error)
 
   def get_image(self):
@@ -210,11 +210,11 @@ class MLBRenderer(Renderer):
           balls_strikes = "{}-{}".format(game.balls, game.strikes)
           small = ImageFont.load(small_font)
           w, h = small.getsize(balls_strikes)
-          draw.text((61-w, 19), balls_strikes, font=small, fill=(255,255,255))
+          draw.text((61-w, 18), balls_strikes, font=small, fill=(255,255,255))
           
           for i in range(0, 3):
             x = 61 - w + i * 4
-            y = 19 + h + 3
+            y = 18 + h + 3
             if game.outs > i:
               draw.point(self.draw_pixels(square_3x3_filled, x, y))
             else:

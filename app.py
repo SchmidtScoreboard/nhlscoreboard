@@ -154,7 +154,14 @@ def create_app():
         with open(settings_path) as f:
             settings = json.load(f) 
         return settings
+    def write_settings(new_settings):
+        with open(settings_path, "w+") as f:
+            json.dump(settings, f)
+
     common_data[screen_on] = True # Starting the service ALWAYS turns the screen on
+    settings = get_settings()
+    settings["screen_on"] = True
+    write_settings(settings)
     draw()
     log.info("Refreshing Sports")
     mlb = MLB()

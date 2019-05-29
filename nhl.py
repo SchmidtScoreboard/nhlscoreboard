@@ -168,7 +168,7 @@ class NHL(League):
             self.games = []
         self.refresh()
     except:
-        error = "blah"
+        error = "Disconnected"
         self.handle_error(error)
 
   def get_image(self):
