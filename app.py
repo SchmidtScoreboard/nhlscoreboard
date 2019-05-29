@@ -165,8 +165,8 @@ def create_app():
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
         common_data[screens][ActiveScreen.QR] = QRScreen("Text", "Message")
-        #common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
-        common_data[active_screen] = ActiveScreen.QR
+        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+        #common_data[active_screen] = ActiveScreen.QR
     log.info("Done setup")
     atexit.register(interrupt)
     return app

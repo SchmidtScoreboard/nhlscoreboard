@@ -25,5 +25,7 @@ class QRScreen(Screen):
         draw = ImageDraw.Draw(image)
         draw.bitmap((self.width - w,0), qr_image)
 
+        # TODO add text/image to left panel
+
 
         return image
