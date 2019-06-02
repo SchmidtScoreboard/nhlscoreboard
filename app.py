@@ -17,6 +17,7 @@ import json
 import sys
 import os
 from files import *
+import socket
 import logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -45,6 +46,14 @@ render_thread = threading.Thread()
 
 def create_app():
     app = Flask(__name__)
+    
+    def get_ip_address():
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+        except:
+            return ""
 
     def interrupt():
         global render_thread
@@ -157,7 +166,7 @@ def create_app():
     def write_settings(new_settings):
         with open(settings_path, "w+") as f:
             json.dump(settings, f)
-
+    print(get_ip_address())
     common_data[screen_on] = True # Starting the service ALWAYS turns the screen on
     settings = get_settings()
     settings["screen_on"] = True
