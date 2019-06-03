@@ -16,6 +16,7 @@ class ActiveScreen(Enum):
     MLB = 1
     REFRESH = 100
     QR = 101
+    HOTSPOT = 102
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
@@ -188,16 +189,23 @@ class Renderer:
       image, draw = self.draw_info(text)
       return image
 
-    def draw_centered_text(self, text, image=None):
+    def draw_text(self, text, centered=False, x=None, y=None, color=None, image=None):
         if image is None:
           image = Image.new("RGB", (self.width, self.height))
+        if x is None:
+          x = self.width/2
+        if y is None:
+          y = self.height/2
+        if color is None:
+          color = (255,255,255)
         font = ImageFont.load(small_font)
         draw = ImageDraw.Draw(image)
         
         w, h = font.getsize(text)
-        x = self.width/2 - w/2
-        y = self.height/2 - h/2
-        draw.text((x,y), text, font=font, fill=(255, 255, 255))
+        if centered:
+          x = x - w/2
+          y = y - h/2
+        draw.text((x,y), text, font=font, fill=color)
 
         return (image, draw)
     def draw_border(self, color=None, image=None):
@@ -210,7 +218,7 @@ class Renderer:
       
     def draw_info(self, text):
       image, draw = self.draw_border() 
-      image, draw = self.draw_centered_text(text, image=image)
+      image, draw = self.draw_text(text, centered=True, image=image)
       return (image, draw)
 
     def draw_icon(self, icon, image=None):
@@ -218,6 +226,7 @@ class Renderer:
     
     def draw_pixels(self, pixels, x, y):
       return [(x+xi, y-yi) for xi, yi in pixels]
+
 
 
 

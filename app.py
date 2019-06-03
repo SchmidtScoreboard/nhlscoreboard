@@ -7,7 +7,7 @@ testing = False
 from nhl import *
 from mlb import *
 from info import *
-from qr import *
+from setup_screens import *
 from common import *
 import threading
 import atexit
@@ -171,9 +171,11 @@ def create_app():
     with data_lock:
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[screens][ActiveScreen.QR] = QRScreen("Text", "Message")
-        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
-        #common_data[active_screen] = ActiveScreen.QR
+        common_data[screens][ActiveScreen.QR] = QRScreen()
+        common_data[screens][ActiveScreen.HOTSPOT] = WifiHotspot()
+        #common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+        #common_data[active_screen] = ActiveScreen.HOTSPOT
+        common_data[active_screen] = ActiveScreen.QR
     log.info("Done setup")
     atexit.register(interrupt)
     return app
@@ -191,7 +193,7 @@ if __name__ == '__main__':
 
     with data_lock:
         common_data[active_screen] = ActiveScreen.REFRESH 
-        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Refreshing")}
+        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Starting")}
         common_data[matrix] = RGBMatrix(options=options)
 
     if not testing:
