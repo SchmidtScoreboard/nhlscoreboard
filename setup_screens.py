@@ -5,6 +5,15 @@ from PIL import Image, ImageDraw, ImageFont
 from common import * 
 from files import *
 import qrcode
+import time
+from enum import Enum
+
+class SetupState(Enum):
+    FACTORY = 0
+    HOTSPOT = 1
+    WIFI_CONNECT = 2
+    SYNC = 3
+    READY = 10
 
 class SetupScreen(Screen):
     def __init__(self, text):
@@ -38,14 +47,22 @@ class SetupScreen(Screen):
 
 class WifiHotspot(SetupScreen):
     def __init__(self):
-        super().__init__("Open the Scoreboard Controller app and connect to WiFi:")
+        super().__init__("Open the Scoreboard App and connect to WiFi:")
 
     def get_image(self):
-        return super().get_scrolling_text()
+        image = Image.new("RGB", (self.width, self.height))
+        draw = ImageDraw.Draw(image)
+        super().get_scrolling_text(image)
+        renderer = Renderer(self.width, self.height)
+        draw.point(renderer.draw_pixels(wifi, 8, 8))
+        renderer.draw_text("Network:", x=24, y=12, color=(255,255,255), image=image)
+        renderer.draw_text("Scoreboard42", x=8, y=22, color=(255,255,255), image=image)
+       
+        return image
 
 class QRScreen(SetupScreen):
     def __init__(self):
-        super().__init__("Scan the QR code to sync with the Scoreboard Controller app")
+        super().__init__("Scan the QR code using the Scoreboard App")
         self.message = "QR CODE MESSAGE HERE"
         self.qr_image = qrcode.make(self.message, version=1, box_size=1, border=4)
 
@@ -56,5 +73,46 @@ class QRScreen(SetupScreen):
         draw = ImageDraw.Draw(image)
         draw.bitmap((self.width/2 - w/2,5), self.qr_image)
         super().get_scrolling_text(image)
+
+        return image
+
+class ConnectionScreen(SetupScreen):
+    def __init__(self):
+        super().__init__("Send your home wifi details using the Scoreboard app")
+        self.start_countdown = False
+        self.timer = 0
+        self.begin_countdown()
+
+    def begin_countdown(self):
+        self.timer = time.time()
+        self.start_countdown = True
+        self.restart_message = "3..."
+
+    def refresh(self):
+        if self.start_countdown:
+            time_spent = time.time() - self.timer
+            if time_spent > 10.0:
+                # time to restart
+            elif time_spent > 9.0:
+                self.restart_message = "3...2...1..."
+            elif time_spent > 8.0:
+                self.restart_message = "3...2..."
+        
+
+    def get_image(self):
+        image = Image.new("RGB", (self.width, self.height))
+        super().get_scrolling_text(image)
+        renderer = Renderer(self.width, self.height)
+        if not self.start_countdown:
+            renderer.draw_text("Waiting on", x=4, y=10, color=(255,255,255), image=image)
+            renderer.draw_text("wifi...", x=4, y=17, color=(255,255,255), image=image)
+        else:
+            renderer.draw_text("Got wifi,", x=4, y=10, color=(255,255,255), image=image)
+            renderer.draw_text("restarting in", x=4, y=17, color=(255,255,255), image=image)
+            renderer.draw_text(self.restart_message, x=4, y=24, color=(255,255,255), image=image)
+
+
+
+        
 
         return image

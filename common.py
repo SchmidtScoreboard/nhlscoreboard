@@ -6,17 +6,19 @@ import logging
 import time
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
+
 small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
 small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
 square_3x3_open = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2)]
 square_3x3_filled = square_3x3_open + [(1,1)]
-
+wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), (4, -8), (5, -3), (5, -5), (5, -7), (6, -3), (6, -5), (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
 class ActiveScreen(Enum):
     NHL = 0
     MLB = 1
     REFRESH = 100
-    QR = 101
-    HOTSPOT = 102
+    HOTSPOT = 101
+    WIFI_DETAILS = 102
+    QR = 103
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
@@ -226,11 +228,3 @@ class Renderer:
     
     def draw_pixels(self, pixels, x, y):
       return [(x+xi, y-yi) for xi, yi in pixels]
-
-
-
-
-  
-
-    
-

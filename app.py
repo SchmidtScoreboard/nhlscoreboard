@@ -71,9 +71,8 @@ def create_app():
 
     @app.route('/', methods = ['GET'])
     def root():
-        with open(settings_path) as out:
-            data = json.load(out)
-            return jsonify(data)
+        settings = get_settings()
+        return jsonify(settings)
 
     @app.route('/configure', methods= ['POST'])
     def configure():
@@ -97,11 +96,9 @@ def create_app():
             content = request.get_json()
             common_data[screen_on] = content["screen_on"]
             draw()
-            with open(settings_path) as f:
-                settings = json.load(f)
-                settings["screen_on"] = common_data[screen_on]
-            with open(settings_path, "w+") as f:
-                json.dump(settings, f)
+            settings = get_settings()
+            settings["screen_on"] = common_data[screen_on]
+            write_settings(settings)
         resp = jsonify(settings)
         return resp
     
@@ -119,12 +116,10 @@ def create_app():
             new_screen = ActiveScreen(content["sport"])
             common_data[active_screen] = ActiveScreen(content["sport"])
             #Update the file    
-            with open(settings_path) as f:
-                settings = json.load(f)
-                settings["active_screen"] = common_data[active_screen].value
-                settings["screen_on"] = common_data[screen_on]
-            with open(settings_path, "w+") as f:
-                json.dump(settings, f)
+            settings = get_settings()
+            settings["active_screen"] = common_data[active_screen].value
+            settings["screen_on"] = common_data[screen_on]
+            write_settings(settings)
 
         resp = jsonify(settings)
         return resp
@@ -162,7 +157,8 @@ def create_app():
     settings = get_settings()
     settings["screen_on"] = True
     write_settings(settings)
-    draw()
+
+    draw() # Draw the refresh screen
     log.info("Refreshing Sports")
     mlb = MLB()
     log.info("Got MLB")
@@ -175,7 +171,8 @@ def create_app():
         common_data[screens][ActiveScreen.HOTSPOT] = WifiHotspot()
         #common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
         #common_data[active_screen] = ActiveScreen.HOTSPOT
-        common_data[active_screen] = ActiveScreen.QR
+        #common_data[active_screen] = ActiveScreen.QR
+        common_data[active_screen] = ActiveScreen.WIFI_DETAILS
     log.info("Done setup")
     atexit.register(interrupt)
     return app
@@ -184,21 +181,25 @@ def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)
 
 if __name__ == '__main__':
-    
+    # Set up the matrix options
     options = RGBMatrixOptions()
     options.brightness = 100
     options.rows = 32
     options.cols = 64
-    options.hardware_mapping = "adafruit-hat"
+    options.hardware_mapping = "adafruit-hat" #TODO use the hack to remove flicker
 
+    # Add the refreshing screen
     with data_lock:
         common_data[active_screen] = ActiveScreen.REFRESH 
-        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Starting")}
+        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Refreshing...")}
         common_data[matrix] = RGBMatrix(options=options)
+        common_data[screens][ActiveScreen.QR] = QRScreen()
+        common_data[screens][ActiveScreen.HOTSPOT] = WifiHotspot()
+        common_data[screens][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
 
     if not testing:
         run_webserver()
-    else:
+    else: #This is a terrible hack but it helps keep things running in test mode
         web_thread = threading.Thread(target=run_webserver)
         web_thread.start()
         common_data[matrix].master.mainloop()
