@@ -26,6 +26,8 @@ try:
 except:
     testing = True
     log.info("Running in test mode")
+    hotspot_on = os.path.join(root_path, "hotspot_on_test.sh")
+    hotspot_off = os.path.join(root_path, "hotspot_off_test.sh")
     from fake_matrix import *
 
 app = Flask(__name__)
@@ -51,6 +53,7 @@ def create_app():
         render_thread.cancel()
 
     def draw_image():
+        # First, manage the setup state
         with data_lock:
             if common_data[screen_on]:
                 common_data[screens][common_data[active_screen]].refresh()
@@ -92,13 +95,14 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
-            interrupt()
-            content = request.get_json()
-            common_data[screen_on] = content["screen_on"]
-            draw()
             settings = get_settings()
-            settings["screen_on"] = common_data[screen_on]
-            write_settings(settings)
+            if settings["setup_state"] == SetupState.READY.value:
+                interrupt()
+                content = request.get_json()
+                common_data[screen_on] = content["screen_on"]
+                draw()
+                settings["screen_on"] = common_data[screen_on]
+                write_settings(settings)
         resp = jsonify(settings)
         return resp
     
@@ -108,54 +112,93 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
-            interrupt()
-            common_data[active_screen] = ActiveScreen.REFRESH
-            common_data[screen_on] = True
-            draw()
-            content = request.get_json()
-            new_screen = ActiveScreen(content["sport"])
-            common_data[active_screen] = ActiveScreen(content["sport"])
-            #Update the file    
             settings = get_settings()
-            settings["active_screen"] = common_data[active_screen].value
-            settings["screen_on"] = common_data[screen_on]
-            write_settings(settings)
+            if settings["setup_state"] == SetupState.READY.value:
+                interrupt()
+                common_data[active_screen] = ActiveScreen.REFRESH
+                common_data[screen_on] = True
+                draw()
+                content = request.get_json()
+                new_screen = ActiveScreen(content["sport"])
+                common_data[active_screen] = ActiveScreen(content["sport"])
+                #Update the file    
+                settings["active_screen"] = common_data[active_screen].value
+                settings["screen_on"] = common_data[screen_on]
+                write_settings(settings)
 
         resp = jsonify(settings)
         return resp
 
-    @app.route
-
-
+    # Used to set the wifi configuration
     @app.route('/wifi', methods=['POST'])
     def setup_wifi():
-        content = request.get_json()
-        with open(wpa_template, "r") as template:
-            wpa_content = Template(template.read())
-            substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
-            with open(wpa_path, "w+") as wpa_supplicant:
-                wpa_supplicant.write(substituted)
-                subprocess.Popen([hotspot_off])
-        resp = jsonify(success=True)
-        return resp
+        global common_data
+        global data_lock
+        with data_lock:
+            content = request.get_json()
+            with open(wpa_template, "r") as template:
+                wpa_content = Template(template.read())
+                substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
+                common_data[screens][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
+            return jsonify(settings)
 
+    # This should also happen when the button is pressed and held for ten seconds
     @app.route('/reset_wifi', methods=['POST'])
     def reset_wifi():
-        subprocess.Popen([hotspot_on])
-        resp = jsonify(success=True)
-        return resp
+        global common_data
+        global data_lock
+        with data_lock:
+            settings = get_settings()
+            settings["active_screen"] = ActiveScreen.HOTSPOT.value
+            settings["setup_state"] = SetupState.HOTSPOT.value
+            write_settings(settings)
+            subprocess.Popen([hotspot_on])
+            return jsonify(settings)
+    
+    # Used on ScanQR screen. When the app scans the QR code, it will send this API request
+    @app.route('/sync', methods=['POST'])
+    def sync():
+        global common_data
+        global data_lock
+        with data_lock:
+            settings = get_settings()
+            if settings["setup_state"] == SetupState.SYNC.value:
+                settings["setup_state"] = SetupState.READY.value
+                settings["active_screen"] = ActiveScreen.NHL.value
+                common_data[active_screen] = ActiveScreen.NHL
+                write_settings(settings)
+                return jsonify(settings)
+            else:
+                return jsonify(success=False) # TODO find a better way to return failure
+    # Used on Hotspot state. When c
+    @app.route('/connect', methods=['POST'])
+    def connect():
+        global common_data
+        global data_lock
+        global log
+        with data_lock:
+            settings = get_settings()
+            log.info(settings)
+            log.info("Got connection command, setupstate = {}".format(settings["setup_state"]))
+            if settings["setup_state"] == SetupState.HOTSPOT.value:
+                settings["setup_state"] = SetupState.WIFI_CONNECT.value
+                settings["active_screen"] = ActiveScreen.WIFI_DETAILS.value
+                interrupt()
+                common_data[active_screen] = ActiveScreen.WIFI_DETAILS
+                common_data[screen_on] = True
+                draw()
+                write_settings(settings)
+                return jsonify(settings)
+            else:
+                return jsonify(success=False) # TODO find a better way to return failure
+        
 
-    def get_settings():
-        with open(settings_path) as f:
-            settings = json.load(f) 
-        return settings
-    def write_settings(new_settings):
-        with open(settings_path, "w+") as f:
-            json.dump(settings, f)
 
     common_data[screen_on] = True # Starting the service ALWAYS turns the screen on
     settings = get_settings()
     settings["screen_on"] = True
+    if settings["setup_state"] == SetupState.FACTORY.value:
+        settings["setup_state"] = SetupState.HOTSPOT.value
     write_settings(settings)
 
     draw() # Draw the refresh screen
@@ -167,12 +210,10 @@ def create_app():
     with data_lock:
         common_data[screens][ActiveScreen.NHL] = nhl
         common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[screens][ActiveScreen.QR] = QRScreen()
-        common_data[screens][ActiveScreen.HOTSPOT] = WifiHotspot()
-        #common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
+        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
         #common_data[active_screen] = ActiveScreen.HOTSPOT
         #common_data[active_screen] = ActiveScreen.QR
-        common_data[active_screen] = ActiveScreen.WIFI_DETAILS
+        #common_data[active_screen] = ActiveScreen.WIFI_DETAILS
     log.info("Done setup")
     atexit.register(interrupt)
     return app

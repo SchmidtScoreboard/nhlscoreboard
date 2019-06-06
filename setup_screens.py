@@ -4,6 +4,7 @@ from collections import namedtuple
 from PIL import Image, ImageDraw, ImageFont
 from common import * 
 from files import *
+import subprocess
 import qrcode
 import time
 from enum import Enum
@@ -81,21 +82,36 @@ class ConnectionScreen(SetupScreen):
         super().__init__("Send your home wifi details using the Scoreboard app")
         self.start_countdown = False
         self.timer = 0
-        self.begin_countdown()
 
-    def begin_countdown(self):
+    def begin_countdown(self, supplicant, script):
         self.timer = time.time()
         self.start_countdown = True
         self.restart_message = "3..."
+        self.supplicant = supplicant
+        self.fired = False
+        self.script = script
 
     def refresh(self):
         if self.start_countdown:
             time_spent = time.time() - self.timer
-            if time_spent > 10.0:
+            if self.fired:
+                return
+            elif time_spent > 3.0 and not self.fired:
                 # time to restart
-            elif time_spent > 9.0:
+                settings = get_settings()
+                settings["setup_state"] = SetupState.SYNC.value
+                settings["active_screen"] = ActiveScreen.QR.value
+                #Don't change the loaded screen because we are restarting
+                write_settings(settings)
+                log.info(settings)
+                with open(wpa_path, "w+") as wpa_supplicant:
+                    wpa_supplicant.write(self.supplicant)
+                    self.fired = True
+                    subprocess.Popen([self.script])
+                    
+            elif time_spent > 2.0:
                 self.restart_message = "3...2...1..."
-            elif time_spent > 8.0:
+            elif time_spent > 1.0:
                 self.restart_message = "3...2..."
         
 
@@ -110,9 +126,4 @@ class ConnectionScreen(SetupScreen):
             renderer.draw_text("Got wifi,", x=4, y=10, color=(255,255,255), image=image)
             renderer.draw_text("restarting in", x=4, y=17, color=(255,255,255), image=image)
             renderer.draw_text(self.restart_message, x=4, y=24, color=(255,255,255), image=image)
-
-
-
-        
-
         return image
