@@ -139,6 +139,7 @@ def create_app():
             with open(wpa_template, "r") as template:
                 wpa_content = Template(template.read())
                 substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
+                log.info(hotspot_off)
                 common_data[screens][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
             return jsonify(settings)
 
@@ -170,7 +171,7 @@ def create_app():
                 return jsonify(settings)
             else:
                 return jsonify(success=False) # TODO find a better way to return failure
-    # Used on Hotspot state. When c
+    # Used on Hotspot state. When app connects to scoreboard, move to Wifi connect state
     @app.route('/connect', methods=['POST'])
     def connect():
         global common_data
