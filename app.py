@@ -22,7 +22,7 @@ import socket
 import logging
 logging.basicConfig(level=logging.INFO,
         handlers=[
-            logging.FileHandler("/home/pi/scoreboard.log"),
+            logging.FileHandler("/home/pi/scoreboard.log", "w"),
             logging.StreamHandler(sys.stdout)
             ])
 log = logging.getLogger(__name__)
