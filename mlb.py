@@ -214,7 +214,7 @@ class MLBRenderer(Renderer):
           
           for i in range(0, 3):
             x = 61 - w + i * 4
-            y = 18 + h + 3
+            y = 19 + h + 3
             if game.outs > i:
               draw.point(self.draw_pixels(square_3x3_filled, x, y))
             else:

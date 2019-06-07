@@ -3,19 +3,32 @@ from PIL import Image, ImageDraw, ImageFont
 from enum import Enum
 from files import *
 import logging
+import json
 import time
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
+
 small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
 small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
 square_3x3_open = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2)]
 square_3x3_filled = square_3x3_open + [(1,1)]
+wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), (4, -8), (5, -3), (5, -5), (5, -7), (6, -3), (6, -5), (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
+
+def get_settings():
+    with open(settings_path) as f:
+        settings = json.load(f) 
+    return settings
+def write_settings(new_settings):
+    with open(settings_path, "w+") as f:
+        json.dump(new_settings, f)
 
 class ActiveScreen(Enum):
     NHL = 0
     MLB = 1
     REFRESH = 100
-    QR = 101
+    HOTSPOT = 101
+    WIFI_DETAILS = 102
+    QR = 103
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
@@ -188,16 +201,23 @@ class Renderer:
       image, draw = self.draw_info(text)
       return image
 
-    def draw_centered_text(self, text, image=None):
+    def draw_text(self, text, centered=False, x=None, y=None, color=None, image=None):
         if image is None:
           image = Image.new("RGB", (self.width, self.height))
+        if x is None:
+          x = self.width/2
+        if y is None:
+          y = self.height/2
+        if color is None:
+          color = (255,255,255)
         font = ImageFont.load(small_font)
         draw = ImageDraw.Draw(image)
         
         w, h = font.getsize(text)
-        x = self.width/2 - w/2
-        y = self.height/2 - h/2
-        draw.text((x,y), text, font=font, fill=(255, 255, 255))
+        if centered:
+          x = x - w/2
+          y = y - h/2
+        draw.text((x,y), text, font=font, fill=color)
 
         return (image, draw)
     def draw_border(self, color=None, image=None):
@@ -210,7 +230,7 @@ class Renderer:
       
     def draw_info(self, text):
       image, draw = self.draw_border() 
-      image, draw = self.draw_centered_text(text, image=image)
+      image, draw = self.draw_text(text, centered=True, image=image)
       return (image, draw)
 
     def draw_icon(self, icon, image=None):
@@ -218,10 +238,3 @@ class Renderer:
     
     def draw_pixels(self, pixels, x, y):
       return [(x+xi, y-yi) for xi, yi in pixels]
-
-
-
-  
-
-    
-
