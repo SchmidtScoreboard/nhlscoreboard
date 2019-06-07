@@ -1,3 +1,4 @@
+print("In app")
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -19,7 +20,11 @@ import os
 from files import *
 import socket
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,
+        handlers=[
+            logging.FileHandler("/home/pi/scoreboard.log"),
+            logging.StreamHandler(sys.stdout)
+            ])
 log = logging.getLogger(__name__)
 try:
     from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
@@ -231,6 +236,7 @@ def run_webserver():
 
 if __name__ == '__main__':
     # Set up the matrix options
+    print("In app main")
     options = RGBMatrixOptions()
     options.brightness = 100
     options.rows = 32
