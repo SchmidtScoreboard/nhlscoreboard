@@ -64,7 +64,7 @@ class WifiHotspot(SetupScreen):
 class QRScreen(SetupScreen):
     def __init__(self):
         super().__init__("Scan the QR code using the Scoreboard App")
-        self.message = "QR CODE MESSAGE HERE"
+        self.message = get_ip_address()
         self.qr_image = qrcode.make(self.message, version=1, box_size=1, border=4)
 
     def get_image(self):

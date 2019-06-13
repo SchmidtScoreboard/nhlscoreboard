@@ -8,6 +8,7 @@ testing = False
 from nhl import *
 from mlb import *
 from info import *
+from error import *
 from setup_screens import *
 from common import *
 import threading
@@ -22,7 +23,7 @@ import socket
 import logging
 logging.basicConfig(level=logging.INFO,
         handlers=[
-            logging.FileHandler("/home/pi/scoreboard.log", "w"),
+            logging.FileHandler(os.path.join(root_path, "../scoreboard_log"), "w"),
             logging.StreamHandler(sys.stdout)
             ])
 log = logging.getLogger(__name__)
@@ -42,25 +43,17 @@ app = Flask(__name__)
 common_data = {}
 
 
-active_screen = "ACTIVE_SCREEN"
-screens = "SCREENS"
-matrix = "MATRIX"
-screen_on = "SCREEN_ON"
-nhl = "NHL"
-mlb = "MLB"
+ACTIVE_SCREEN_KEY = "active_screen"
+SETUP_STATE_KEY = "setup_state"
+SCREENS_KEY = "screens"
+MATRIX_KEY = "matrix"
+SCREEN_ON_KEY = "screen_on"
+
 data_lock = threading.RLock()
 render_thread = threading.Thread()
 
 def create_app():
     app = Flask(__name__)
-    
-    def get_ip_address():
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
-        except:
-            return ""
 
     def interrupt():
         global render_thread
@@ -69,20 +62,20 @@ def create_app():
     def draw_image():
         # First, manage the setup state
         with data_lock:
-            if common_data[screen_on]:
-                common_data[screens][common_data[active_screen]].refresh()
-                image = common_data[screens][common_data[active_screen]].get_image()
-                common_data[matrix].Clear()
-                common_data[matrix].SetImage(image.convert("RGB")) 
+            if common_data[SCREEN_ON_KEY]:
+                common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].refresh()
+                image = common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].get_image()
+                common_data[MATRIX_KEY].Clear()
+                common_data[MATRIX_KEY].SetImage(image.convert("RGB")) 
             else:
-                common_data[matrix].Clear()
+                common_data[MATRIX_KEY].Clear()
         
 
     def draw():
         global common_data
         global render_thread
         draw_image()
-        render_thread = threading.Timer(common_data[screens][common_data[active_screen]].get_sleep_time(), draw, ())
+        render_thread = threading.Timer(common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].get_sleep_time(), draw, ())
             
         render_thread.start()
 
@@ -110,12 +103,12 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            if settings["setup_state"] == SetupState.READY.value:
+            if settings[SETUP_STATE_KEY] == SetupState.READY.value:
                 interrupt()
                 content = request.get_json()
-                common_data[screen_on] = content["screen_on"]
+                common_data[SCREEN_ON_KEY] = content[SCREEN_ON_KEY]
                 draw()
-                settings["screen_on"] = common_data[screen_on]
+                settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
         resp = jsonify(settings)
         return resp
@@ -127,17 +120,17 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            if settings["setup_state"] == SetupState.READY.value:
+            if settings[SETUP_STATE_KEY] == SetupState.READY.value:
                 interrupt()
-                common_data[active_screen] = ActiveScreen.REFRESH
-                common_data[screen_on] = True
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
+                common_data[SCREEN_ON_KEY] = True
                 draw()
                 content = request.get_json()
                 new_screen = ActiveScreen(content["sport"])
-                common_data[active_screen] = ActiveScreen(content["sport"])
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(content["sport"])
                 #Update the file    
-                settings["active_screen"] = common_data[active_screen].value
-                settings["screen_on"] = common_data[screen_on]
+                settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
+                settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
 
         resp = jsonify(settings)
@@ -154,7 +147,7 @@ def create_app():
                 wpa_content = Template(template.read())
                 substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
                 log.info(hotspot_off)
-                common_data[screens][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
+                common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
             return jsonify(settings)
 
     # This should also happen when the button is pressed and held for ten seconds
@@ -164,8 +157,8 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            settings["active_screen"] = ActiveScreen.HOTSPOT.value
-            settings["setup_state"] = SetupState.HOTSPOT.value
+            settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
+            settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
             write_settings(settings)
             subprocess.Popen([hotspot_on])
             return jsonify(settings)
@@ -177,10 +170,10 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            if settings["setup_state"] == SetupState.SYNC.value:
-                settings["setup_state"] = SetupState.READY.value
-                settings["active_screen"] = ActiveScreen.NHL.value
-                common_data[active_screen] = ActiveScreen.NHL
+            if settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
+                settings[SETUP_STATE_KEY] = SetupState.READY.value
+                settings[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL.value
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL
                 write_settings(settings)
                 return jsonify(settings)
             else:
@@ -194,24 +187,31 @@ def create_app():
         with data_lock:
             settings = get_settings()
             log.info(settings)
-            log.info("Got connection command, setupstate = {}".format(settings["setup_state"]))
-            if settings["setup_state"] == SetupState.HOTSPOT.value:
-                settings["setup_state"] = SetupState.WIFI_CONNECT.value
-                settings["active_screen"] = ActiveScreen.WIFI_DETAILS.value
+            log.info("Got connection command, setupstate = {}".format(settings[SETUP_STATE_KEY]))
+            if settings[SETUP_STATE_KEY] == SetupState.HOTSPOT.value:
+                settings[SETUP_STATE_KEY] = SetupState.WIFI_CONNECT.value
+                settings[ACTIVE_SCREEN_KEY] = ActiveScreen.WIFI_DETAILS.value
                 interrupt()
-                common_data[active_screen] = ActiveScreen.WIFI_DETAILS
-                common_data[screen_on] = True
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.WIFI_DETAILS
+                common_data[SCREEN_ON_KEY] = True
                 draw()
                 write_settings(settings)
                 return jsonify(settings)
             else:
-                return jsonify(success=False) # TODO find a better way to return failure
+                response = jsonify(success=False) # TODO find a better way to return failure
+                response.status_code = 500
+                return response
 
-    common_data[screen_on] = True # Starting the service ALWAYS turns the screen on
+    common_data[SCREEN_ON_KEY] = True # Starting the service ALWAYS turns the screen on
     settings = get_settings()
-    settings["screen_on"] = True
-    if settings["setup_state"] == SetupState.FACTORY.value:
-        settings["setup_state"] = SetupState.HOTSPOT.value
+    settings[SCREEN_ON_KEY] = True
+    if settings[SETUP_STATE_KEY] == SetupState.FACTORY.value:
+        settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
+    elif settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
+        if get_ip_address() == "":
+            #Got empty string, which means it failed to connect. Display something funky and make the user reset
+            settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
+
     write_settings(settings)
 
     draw() # Draw the refresh screen
@@ -221,12 +221,12 @@ def create_app():
     nhl = NHL()
     log.info("Got NHL")
     with data_lock:
-        common_data[screens][ActiveScreen.NHL] = nhl
-        common_data[screens][ActiveScreen.MLB] = mlb
-        common_data[active_screen] = ActiveScreen(get_settings()["active_screen"])
-        #common_data[active_screen] = ActiveScreen.HOTSPOT
-        #common_data[active_screen] = ActiveScreen.QR
-        #common_data[active_screen] = ActiveScreen.WIFI_DETAILS
+        common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
+        common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
+        common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(get_settings()[ACTIVE_SCREEN_KEY])
+        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT
+        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.QR
+        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.WIFI_DETAILS
     log.info("Done setup")
     atexit.register(interrupt)
     return app
@@ -243,19 +243,19 @@ if __name__ == '__main__':
     options.cols = 64
     options.hardware_mapping = "adafruit-hat" #TODO use the hack to remove flicker
 
-    # Add the refreshing screen
     with data_lock:
-        common_data[active_screen] = ActiveScreen.REFRESH 
-        common_data[screens] = {ActiveScreen.REFRESH: InfoScreen("Refreshing...")}
-        common_data[matrix] = RGBMatrix(options=options)
-        common_data[screens][ActiveScreen.QR] = QRScreen()
-        common_data[screens][ActiveScreen.HOTSPOT] = WifiHotspot()
-        common_data[screens][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
+        common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH 
+        common_data[SCREENS_KEY] = {ActiveScreen.REFRESH: InfoScreen("Refreshing...")}
+        common_data[MATRIX_KEY] = RGBMatrix(options=options)
+        common_data[SCREENS_KEY][ActiveScreen.QR] = QRScreen()
+        common_data[SCREENS_KEY][ActiveScreen.HOTSPOT] = WifiHotspot()
+        common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
+        common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Dummy Error Message")
 
     if not testing:
         run_webserver()
     else: #This is a terrible hack but it helps keep things running in test mode
         web_thread = threading.Thread(target=run_webserver)
         web_thread.start()
-        common_data[matrix].master.mainloop()
+        common_data[MATRIX_KEY].master.mainloop()
 

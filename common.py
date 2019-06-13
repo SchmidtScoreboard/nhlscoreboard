@@ -21,6 +21,14 @@ def get_settings():
 def write_settings(new_settings):
     with open(settings_path, "w+") as f:
         json.dump(new_settings, f)
+    
+def get_ip_address():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80)) # attempt to connect, and then get hostname
+        return s.getsockname()[0]
+    except:
+        return ""
 
 class ActiveScreen(Enum):
     NHL = 0
@@ -29,6 +37,7 @@ class ActiveScreen(Enum):
     HOTSPOT = 101
     WIFI_DETAILS = 102
     QR = 103
+    ERROR = 999
 
 class Team:
     def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):

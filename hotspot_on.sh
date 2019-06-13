@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Running hotspot on"
 sleep 2
 sudo cp /home/pi/nhlscoreboard/dhcpcd.conf.hotspot /etc/dhcpcd.conf
 sudo cp /home/pi/nhlscoreboard/dnsmasq.conf /etc/dnsmasq.conf
