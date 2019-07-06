@@ -5,6 +5,7 @@ from files import *
 import logging
 import json
 import time
+import socket
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
 
@@ -232,8 +233,10 @@ class Renderer:
     def draw_border(self, color=None, image=None):
         if image is None:
           image = Image.new("RGB", (self.width, self.height))
+        if color is None:
+          color = (255, 255, 255)
         draw = ImageDraw.Draw(image)
-        draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=(255, 255, 255), fill=(0, 0, 0))
+        draw.rectangle([(0,0), (self.width-1, self.height-1)], outline=color, fill=(0, 0, 0))
 
         return (image, draw)
       
@@ -247,3 +250,21 @@ class Renderer:
     
     def draw_pixels(self, pixels, x, y):
       return [(x+xi, y-yi) for xi, yi in pixels]
+
+    def get_scrolling_text(self, text_start, image=None, message="Message", background_color=(255,255,255), text_color=(0,0,0)):
+        if image is None:
+            image = Image.new("RGB", (self.width, self.height))
+        draw = ImageDraw.Draw(image) #  let's draw on this image
+        draw.rectangle(((0,0), (64,6)), fill=background_color)
+        font = ImageFont.load(small_font)
+        w, h = font.getsize(message)
+        text_end = text_start + w
+        secondary_start = text_end + 16
+    
+        self.draw_text(message, x=text_start, y=1, color=text_color, image=image)
+        self.draw_text(message, x=secondary_start, y=1, color=text_color, image=image)
+
+        text_start -= 1
+        if text_end <= 0:
+            text_start = secondary_start - 1
+        return image, draw, text_start

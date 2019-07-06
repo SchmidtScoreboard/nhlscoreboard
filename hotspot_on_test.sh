@@ -1,2 +1,3 @@
 #!/bin/bash
-pkill Python
+echo "Running hotspot on test"
+sudo pkill python

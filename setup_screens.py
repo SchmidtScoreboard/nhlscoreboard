@@ -27,25 +27,6 @@ class SetupScreen(Screen):
     def get_sleep_time(self):
         return 0.05
 
-    def get_scrolling_text(self, image=None):
-        renderer = Renderer(self.width, self.height)
-        if image is None:
-            image = Image.new("RGB", (self.width, self.height))
-        draw = ImageDraw.Draw(image) #  let's draw on this image
-        draw.rectangle(((0,0), (64,6)), fill=(255, 255,255))
-        font = ImageFont.load(small_font)
-        w, h = font.getsize(self.text)
-        text_end = self.text_start + w
-        secondary_start = text_end + 16
-    
-        renderer.draw_text(self.text, x=self.text_start, y=1, color=(0,0,0), image=image)
-        renderer.draw_text(self.text, x=secondary_start, y=1, color=(0,0,0), image=image)
-
-        self.text_start -= 1
-        if text_end <= 0:
-            self.text_start = secondary_start - 1
-        return image
-
 class WifiHotspot(SetupScreen):
     def __init__(self):
         super().__init__("Open the Scoreboard App and connect to WiFi:")
@@ -53,8 +34,8 @@ class WifiHotspot(SetupScreen):
     def get_image(self):
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)
-        super().get_scrolling_text(image)
         renderer = Renderer(self.width, self.height)
+        image, draw, self.text_start = renderer.get_scrolling_text(self.text_start, image, self.text)
         draw.point(renderer.draw_pixels(wifi, 8, 8))
         renderer.draw_text("Network:", x=24, y=12, color=(255,255,255), image=image)
         renderer.draw_text("Scoreboard42", x=8, y=22, color=(255,255,255), image=image)
@@ -73,7 +54,8 @@ class QRScreen(SetupScreen):
         w = self.qr_image.width + 4 * 2
         draw = ImageDraw.Draw(image)
         draw.bitmap((self.width/2 - w/2,5), self.qr_image)
-        super().get_scrolling_text(image)
+        renderer = Renderer(self.width, self.height)
+        image, draw, self.text_start = renderer.get_scrolling_text(self.text_start, image, self.text)
 
         return image
 
@@ -117,8 +99,8 @@ class ConnectionScreen(SetupScreen):
 
     def get_image(self):
         image = Image.new("RGB", (self.width, self.height))
-        super().get_scrolling_text(image)
         renderer = Renderer(self.width, self.height)
+        image, draw, self.text_start = renderer.get_scrolling_text(self.text_start, image, self.text)
         if not self.start_countdown:
             renderer.draw_text("Waiting on", x=4, y=10, color=(255,255,255), image=image)
             renderer.draw_text("wifi...", x=4, y=17, color=(255,255,255), image=image)

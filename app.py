@@ -33,9 +33,9 @@ try:
 except:
     testing = True
     log.info("Running in test mode")
+    from fake_matrix import *
     hotspot_on = os.path.join(root_path, "hotspot_on_test.sh")
     hotspot_off = os.path.join(root_path, "hotspot_off_test.sh")
-    from fake_matrix import *
 
 app = Flask(__name__)
 
@@ -210,7 +210,11 @@ def create_app():
     elif settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
         if get_ip_address() == "":
             #Got empty string, which means it failed to connect. Display something funky and make the user reset
+            log.error("Failed to connect to wifi")
+            settings[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("")
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
+        else:
+            settings[ACTIVE_SCREEN_KEY] = ActiveScreen.QR.value
 
     write_settings(settings)
 
