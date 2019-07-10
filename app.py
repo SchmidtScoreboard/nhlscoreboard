@@ -91,10 +91,9 @@ def create_app():
         with data_lock:
             log.info("configuring")
             content = request.get_json()
-            with open(settings_path, "w+") as out:
-                json.dump(content, out)
-            # TODO restart the entire thing?
-        resp = jsonify(success=True)
+            write_settings(content)
+            initScreens()
+        resp = jsonify(get_settings()
         return resp
 
     @app.route('/setPower', methods=['POST'])
@@ -219,21 +218,29 @@ def create_app():
     write_settings(settings)
 
     draw() # Draw the refresh screen
+    initScreens()
+    log.info("Done setup")
+    atexit.register(interrupt)
+    return app
+
+def initScreens():
+    screen_settings = get_settings()["screens"]
+    try:
+        mlb_settings = next(screen for screen in screen_settings if screen["id"] == ActiveScreen.MLB.value)
+        nhl_settings = next(screen for screen in screen_settings if screen["id"] == ActiveScreen.NHL.value)
+    except:
+        print("Something went wrong while parsing screen settings")
+    print(nhl_settings)
+    print(mlb_settings)
     log.info("Refreshing Sports")
-    mlb = MLB()
+    mlb = MLB(mlb_settings)
     log.info("Got MLB")
-    nhl = NHL()
+    nhl = NHL(nhl_settings)
     log.info("Got NHL")
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(get_settings()[ACTIVE_SCREEN_KEY])
-        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT
-        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.QR
-        #common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.WIFI_DETAILS
-    log.info("Done setup")
-    atexit.register(interrupt)
-    return app
 
 def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)

@@ -101,11 +101,13 @@ class Screen:
     return 60
 
 class League(Screen):
-  def __init__(self):
+  def __init__(self, settings):
       super().__init__()
       self.full_refresh_counter = 20
       self.active_index = 0
       self.last_refresh = time.time()
+      self.rotation_time = settings.get("rotation_time", 10)
+      self.focus_teams = settings.get("focus_teams", [])
       self.reset()
   
   def reset(self):
@@ -133,19 +135,19 @@ class League(Screen):
     # Regardless, move the active game up one, unless a favorite team is playing
     if len(self.games) == 0:
       self.active_index = -1
-    elif self.team_playing(19) is not None: #TODO store favorite teams
-      active_index = self.team_playing(19)
+    elif self.favorite_teams_playing() is not None: 
+      active_index = self.favorite_teams_playing()
     else:
       self.active_index = (self.active_index + 1) % len(self.games)
 
+  def get_sleep_time(self):
+    return self.rotation_time
   def get_image(self):
     pass
 
   def get_refresh_time(self):
     if len(self.games) == 0:
         return 120
-    elif self.team_playing(19) is not None: #TODO store favorite teams
-        return 10
     else:
         return 60
       
@@ -155,6 +157,14 @@ class League(Screen):
             if game.status == GameStatus.ACTIVE or game.status == GameStatus.INTERMISSION:
                 return self.games.index(game)
     return None
+  
+  def favorite_teams_playing(self):
+    for team_id in self.focus_teams:
+      game = self.team_playing(team_id)
+      if game is not None:
+        return game
+    return None
+
 
   def handle_error(self, error):
     self.error = True

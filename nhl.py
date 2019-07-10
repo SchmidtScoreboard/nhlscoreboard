@@ -139,8 +139,8 @@ short_names = {
     54: "Knights"
 }
 class NHL(League):
-  def __init__(self):
-    super().__init__()
+  def __init__(self, settings):
+    super().__init__(settings)
 
   def reset(self):
     super().reset()
@@ -167,7 +167,8 @@ class NHL(League):
         else:
             self.games = []
         self.refresh()
-    except:
+    except Exception as e:
+        print("Error: " + str(e))
         error = "Disconnected"
         self.handle_error(error)
 

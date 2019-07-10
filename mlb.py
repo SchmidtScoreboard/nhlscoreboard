@@ -144,8 +144,8 @@ class MLBGame(Game):
 short_names = {
 }
 class MLB(League):
-  def __init__(self):
-    super().__init__()
+  def __init__(self, settings):
+    super().__init__(settings)
   
   def reset(self):
     super().reset()
@@ -156,6 +156,12 @@ class MLB(League):
     try:
       self.schedule = requests.get(url = schedule_url).json()
       team_response = requests.get(url = team_url).json()
+    except Exception as e:
+      print("Error: " + str(e))
+      error = self.handle_error(e)
+      return
+
+    try: 
       self.teams = {t["id"]: MLBTeam(t["id"], 
         t["teamName"], 
         t["teamName"] if len(t["teamName"]) < 10 else short_names[t["id"]],
@@ -163,6 +169,10 @@ class MLB(League):
         t["abbreviation"], 
         primaryColorMap.get(t["id"], Color(0,0,0)),
         secondaryColorMap.get(t["id"], Color(255, 255, 255))) for t in team_response["teams"]}
+      if 159 not in self.teams:
+        self.teams[159] = MLBTeam(159, "NL All Stars", "NL All Stars", "", "NL", Color(255, 0, 0), Color(255, 255, 255))
+      if 160 not in self.teams:
+        self.teams[160] = MLBTeam(160, "AL All Stars", "AL All Stars", "", "AL", Color(0, 0, 255), Color(255, 255, 255))
       if len(self.schedule["dates"]):
         self.games = [MLBGame(
           game["gamePk"],
@@ -172,8 +182,9 @@ class MLB(League):
       else:
         self.games = []
       self.refresh()
-    except:
-      error = "Disconnected :("
+    except Exception as e:
+      print("Error: " + str(e))
+      error = "Internal Error" # Game has malformed data
       self.handle_error(error)
 
   def get_image(self):
