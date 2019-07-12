@@ -91,9 +91,11 @@ def create_app():
         with data_lock:
             log.info("configuring")
             content = request.get_json()
-            write_settings(content)
+            old_settings = get_settings()
+            merged = {**old_settings, **content}
+            write_settings(merged)
             initScreens()
-        resp = jsonify(get_settings()
+        resp = jsonify(get_settings())
         return resp
 
     @app.route('/setPower', methods=['POST'])

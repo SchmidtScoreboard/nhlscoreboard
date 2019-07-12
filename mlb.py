@@ -158,7 +158,8 @@ class MLB(League):
       team_response = requests.get(url = team_url).json()
     except Exception as e:
       print("Error: " + str(e))
-      error = self.handle_error(e)
+      error = "Disconnected"
+      self.handle_error(error)
       return
 
     try: 
