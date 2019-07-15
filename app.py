@@ -108,7 +108,7 @@ def create_app():
                 interrupt()
                 content = request.get_json()
                 common_data[SCREEN_ON_KEY] = content[SCREEN_ON_KEY]
-                draw()
+                draw_image()
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
         resp = jsonify(settings)
