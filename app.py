@@ -212,7 +212,7 @@ def create_app():
         if get_ip_address() == "":
             #Got empty string, which means it failed to connect. Display something funky and make the user reset
             log.error("Failed to connect to wifi")
-            settings[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("")
+            common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Failed to connect to wifi")
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
         else:
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.QR.value
