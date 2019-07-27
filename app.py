@@ -89,7 +89,7 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
-            log.info("configuring")
+            interrupt()
             content = request.get_json()
             old_settings = get_settings()
             merged = {**old_settings, **content}
@@ -111,6 +111,8 @@ def create_app():
                 draw_image()
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
+            else:
+                log.error("Cannot power off, scoreboard is not ready")
         resp = jsonify(settings)
         return resp
     
@@ -133,7 +135,8 @@ def create_app():
                 settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
-
+            else:
+                log.error("Cannot set sport, scoreboard is not ready")
         resp = jsonify(settings)
         return resp
 
