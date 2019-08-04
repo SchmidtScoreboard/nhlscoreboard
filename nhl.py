@@ -141,6 +141,7 @@ short_names = {
 class NHL(League):
   def __init__(self, settings):
     super().__init__(settings)
+    self.renderer = NHLRenderer(64, 32)
 
   def reset(self):
     super().reset()
@@ -169,17 +170,17 @@ class NHL(League):
         self.refresh()
     except Exception as e:
         print("Error: " + str(e))
-        error = "Disconnected"
-        self.handle_error(error)
+        error_title = "Disconnected"
+        error_message = "Use the Scoreboard app to get reconnected"
+        self.handle_error(error_title, error_message)
 
   def get_image(self):
-    renderer = NHLRenderer(64, 32)
     if self.error:
-      return renderer.draw_error(self.error_message)
+      return self.renderer.draw_error(self.error_title, self.error_message)
     elif self.active_index == -1:
-        return renderer.draw_info("No games :(")[0]
+        return self.renderer.draw_info("No games :(")[0]
     else:
-      return renderer.render(self.games[self.active_index])
+      return self.renderer.render(self.games[self.active_index])
 
 
 class NHLRenderer(Renderer):

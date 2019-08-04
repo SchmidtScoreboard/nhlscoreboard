@@ -82,6 +82,7 @@ class Game:
 class Screen:
   def __init__(self):
     self.error = False
+    self.error_title = ""
     self.error_message = ""
     pass
 
@@ -128,9 +129,9 @@ class League(Screen):
       try:
         for game in self.games:
           game.refresh()
+        self.error = False
       except:
-        error = "Connection Error"
-        self.handle_error(error)
+        self.handle_error("Disconnected", "Use the scoreboard app to get reconnected")
 
     # Regardless, move the active game up one, unless a favorite team is playing
     if len(self.games) == 0:
@@ -141,7 +142,10 @@ class League(Screen):
       self.active_index = (self.active_index + 1) % len(self.games)
 
   def get_sleep_time(self):
-    return self.rotation_time
+    if self.error:
+      return 0.05
+    else:
+      return self.rotation_time
   def get_image(self):
     pass
 
@@ -166,14 +170,16 @@ class League(Screen):
     return None
 
 
-  def handle_error(self, error):
+  def handle_error(self, error_title, error_message):
     self.error = True
-    self.error_message = error
+    self.error_title = error_title
+    self.error_message = error_message
 
 class Renderer:
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.text_start = self.width
 
 
     def draw_big_scoreboard(self, game):
@@ -217,17 +223,26 @@ class Renderer:
 
         return (image, draw)
 
-    def draw_error(self, text):
-      image, draw = self.draw_info(text)
+    def draw_error(self, title, scrollingText=None):
+      image, draw = self.draw_border(color = (255,0,0))
+      height = None
+      if scrollingText is not None:
+        height = self.height + 6
+        image, draw, self.text_start = self.get_scrolling_text(self.text_start, image, scrollingText, (255,0,0),(0,0,0))
+      image, draw = self.draw_text(title, centered=True, image=image, height=height, color=(255,0,0))
       return image
 
-    def draw_text(self, text, centered=False, x=None, y=None, color=None, image=None):
+    def draw_text(self, text, centered=False, x=None, y=None, width=None, height=None, color=None, image=None):
         if image is None:
           image = Image.new("RGB", (self.width, self.height))
+        if width is None:
+          width = self.width
+        if height is None:
+          height = self.height
         if x is None:
-          x = self.width/2
+          x = width/2
         if y is None:
-          y = self.height/2
+          y = height/2
         if color is None:
           color = (255,255,255)
         font = ImageFont.load(small_font)

@@ -146,6 +146,7 @@ short_names = {
 class MLB(League):
   def __init__(self, settings):
     super().__init__(settings)
+    self.renderer = MLBRenderer(64, 32)
   
   def reset(self):
     super().reset()
@@ -158,8 +159,9 @@ class MLB(League):
       team_response = requests.get(url = team_url).json()
     except Exception as e:
       print("Error: " + str(e))
-      error = "Disconnected"
-      self.handle_error(error)
+      error_title = "Disconnected"
+      error_message = "Use the Scoreboard app to get reconnected"
+      self.handle_error(error_title, error_message)
       return
 
     try: 
@@ -185,17 +187,15 @@ class MLB(League):
       self.refresh()
     except Exception as e:
       print("Error: " + str(e))
-      error = "Internal Error" # Game has malformed data
-      self.handle_error(error)
+      self.handle_error("Internal Error", "An error occurred, please contact support")
 
   def get_image(self):
-    renderer = MLBRenderer(64, 32)
     if self.error:
-      return renderer.draw_error(self.error_message)
+      return self.renderer.draw_error(self.error_title, self.error_message)
     elif self.active_index == -1:
-        return renderer.draw_info("No games :(")[0]
+        return self.renderer.draw_info("No games :(")[0]
     else:
-      return renderer.render(self.games[self.active_index])
+      return self.renderer.render(self.games[self.active_index])
 
 class MLBRenderer(Renderer):
     def __init__(self, width, height):
