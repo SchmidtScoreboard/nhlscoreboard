@@ -21,6 +21,7 @@ import os
 from files import *
 import socket
 import logging
+import config
 
 
 logging.basicConfig(level=logging.INFO,
@@ -33,7 +34,7 @@ try:
     from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
     log.info("Running in production mode")
 except:
-    testing = True
+    config.testing = True
     log.info("Running in test mode")
     from fake_matrix import *
     hotspot_on = os.path.join(root_path, "hotspot_on_test.sh")
@@ -147,7 +148,6 @@ def create_app():
             with open(wpa_template, "r") as template:
                 wpa_content = Template(template.read())
                 substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
-                log.info(hotspot_off)
                 common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
             return jsonify(settings)
 
@@ -162,6 +162,7 @@ def create_app():
             settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
             write_settings(settings)
             subprocess.Popen([hotspot_on])
+            threading.Timer(3, reboot)
             return jsonify(settings)
     
     # Used on ScanQR screen. When the app scans the QR code, it will send this API request

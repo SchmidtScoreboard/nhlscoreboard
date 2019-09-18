@@ -7,6 +7,7 @@ from files import *
 import subprocess
 import qrcode
 import time
+import config
 from enum import Enum
 
 class SetupState(Enum):
@@ -90,6 +91,7 @@ class ConnectionScreen(SetupScreen):
                     wpa_supplicant.write(self.supplicant)
                     self.fired = True
                     subprocess.Popen([self.script])
+                    reboot()
                     
             elif time_spent > 2.0:
                 self.restart_message = "3...2...1..."

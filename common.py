@@ -5,6 +5,7 @@ from files import *
 import logging
 import json
 import time
+import config
 import socket
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
@@ -20,6 +21,13 @@ small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), 
 square_3x3_open = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2)]
 square_3x3_filled = square_3x3_open + [(1,1)]
 wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), (4, -8), (5, -3), (5, -5), (5, -7), (6, -3), (6, -5), (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
+
+def reboot():
+  print("About to reboot, testing is {}".format(testing))
+  if config.testing:
+    os.system('sudo pkill python')
+  else:
+    os.system('sudo shutdown -r now')
 
 def get_settings():
     with open(settings_path) as f:
