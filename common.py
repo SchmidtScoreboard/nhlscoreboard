@@ -9,6 +9,12 @@ import socket
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
 
+ACTIVE_SCREEN_KEY = "active_screen"
+SETUP_STATE_KEY = "setup_state"
+SCREENS_KEY = "screens"
+MATRIX_KEY = "matrix"
+SCREEN_ON_KEY = "screen_on"
+
 small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
 small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
 square_3x3_open = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2)]

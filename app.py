@@ -1,10 +1,10 @@
-print("In app")
+print("Begin Scoreboard App.py")
+testing = False
 from flask import Flask
 from flask import request
 from flask import jsonify
 from string import Template
 from PIL import Image, ImageDraw, ImageFont
-testing = False
 from nhl import *
 from mlb import *
 from info import *
@@ -21,6 +21,8 @@ import os
 from files import *
 import socket
 import logging
+
+
 logging.basicConfig(level=logging.INFO,
         handlers=[
             logging.FileHandler(os.path.join(root_path, "../scoreboard_log"), "w"),
@@ -43,11 +45,6 @@ app = Flask(__name__)
 common_data = {}
 
 
-ACTIVE_SCREEN_KEY = "active_screen"
-SETUP_STATE_KEY = "setup_state"
-SCREENS_KEY = "screens"
-MATRIX_KEY = "matrix"
-SCREEN_ON_KEY = "screen_on"
 
 data_lock = threading.RLock()
 render_thread = threading.Thread()
@@ -250,6 +247,12 @@ def initScreens():
 def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)
 
+def button_press():
+    log.info("Button pressed at {}".format(time.time()))
+
+def button_release():
+    log.info("Button released at {}".format(time.time()))
+
 if __name__ == '__main__':
     # Set up the matrix options
     print("In app main")
@@ -267,6 +270,7 @@ if __name__ == '__main__':
         common_data[SCREENS_KEY][ActiveScreen.HOTSPOT] = WifiHotspot()
         common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
         common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Dummy Error Message")
+    
 
     if not testing:
         run_webserver()
@@ -274,4 +278,3 @@ if __name__ == '__main__':
         web_thread = threading.Thread(target=run_webserver)
         web_thread.start()
         common_data[MATRIX_KEY].master.mainloop()
-
