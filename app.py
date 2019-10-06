@@ -1,10 +1,10 @@
-print("In app")
+print("Begin Scoreboard App.py")
+testing = False
 from flask import Flask
 from flask import request
 from flask import jsonify
 from string import Template
 from PIL import Image, ImageDraw, ImageFont
-testing = False
 from nhl import *
 from mlb import *
 from info import *
@@ -21,6 +21,9 @@ import os
 from files import *
 import socket
 import logging
+import config
+
+
 logging.basicConfig(level=logging.INFO,
         handlers=[
             logging.FileHandler(os.path.join(root_path, "../scoreboard_log"), "w"),
@@ -31,7 +34,7 @@ try:
     from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
     log.info("Running in production mode")
 except:
-    testing = True
+    config.testing = True
     log.info("Running in test mode")
     from fake_matrix import *
     hotspot_on = os.path.join(root_path, "hotspot_on_test.sh")
@@ -43,11 +46,6 @@ app = Flask(__name__)
 common_data = {}
 
 
-ACTIVE_SCREEN_KEY = "active_screen"
-SETUP_STATE_KEY = "setup_state"
-SCREENS_KEY = "screens"
-MATRIX_KEY = "matrix"
-SCREEN_ON_KEY = "screen_on"
 
 data_lock = threading.RLock()
 render_thread = threading.Thread()
@@ -89,7 +87,7 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
-            log.info("configuring")
+            interrupt()
             content = request.get_json()
             old_settings = get_settings()
             merged = {**old_settings, **content}
@@ -111,6 +109,8 @@ def create_app():
                 draw_image()
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
+            else:
+                log.error("Cannot power off, scoreboard is not ready")
         resp = jsonify(settings)
         return resp
     
@@ -133,7 +133,8 @@ def create_app():
                 settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
-
+            else:
+                log.error("Cannot set sport, scoreboard is not ready")
         resp = jsonify(settings)
         return resp
 
@@ -147,7 +148,6 @@ def create_app():
             with open(wpa_template, "r") as template:
                 wpa_content = Template(template.read())
                 substituted = wpa_content.substitute(ssid=content['ssid'], psk=content['psk'])
-                log.info(hotspot_off)
                 common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS].begin_countdown(substituted, hotspot_off)
             return jsonify(settings)
 
@@ -162,6 +162,7 @@ def create_app():
             settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
             write_settings(settings)
             subprocess.Popen([hotspot_on])
+            threading.Timer(3, reboot)
             return jsonify(settings)
     
     # Used on ScanQR screen. When the app scans the QR code, it will send this API request
@@ -212,7 +213,7 @@ def create_app():
         if get_ip_address() == "":
             #Got empty string, which means it failed to connect. Display something funky and make the user reset
             log.error("Failed to connect to wifi")
-            settings[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("")
+            common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Failed to connect to wifi")
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
         else:
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.QR.value
@@ -247,6 +248,12 @@ def initScreens():
 def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)
 
+def button_press():
+    log.info("Button pressed at {}".format(time.time()))
+
+def button_release():
+    log.info("Button released at {}".format(time.time()))
+
 if __name__ == '__main__':
     # Set up the matrix options
     print("In app main")
@@ -264,6 +271,7 @@ if __name__ == '__main__':
         common_data[SCREENS_KEY][ActiveScreen.HOTSPOT] = WifiHotspot()
         common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
         common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Dummy Error Message")
+    
 
     if not testing:
         run_webserver()
@@ -271,4 +279,3 @@ if __name__ == '__main__':
         web_thread = threading.Thread(target=run_webserver)
         web_thread.start()
         common_data[MATRIX_KEY].master.mainloop()
-

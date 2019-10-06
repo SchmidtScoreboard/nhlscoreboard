@@ -11,5 +11,4 @@ sudo systemctl enable dnsmasq
 sudo systemctl start dnsmasq
 sudo systemctl daemon-reload
 sudo systemctl restart dhcpcd
-sudo reboot
 

@@ -22,8 +22,3 @@ class RGBMatrix():
 class RGBMatrixOptions():
     def __init__(self):
         pass
-
-if __name__ == "__main__":
-    matrix = RGBMatrix()
-    matrix.SetImage("blah")
-    matrix.master.mainloop()

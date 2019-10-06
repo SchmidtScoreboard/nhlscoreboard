@@ -9,5 +9,4 @@ sudo systemctl stop dnsmasq
 sudo systemctl disable dnsmasq
 sudo systemctl daemon-reload
 sudo systemctl restart dhcpcd
-sudo reboot
 
