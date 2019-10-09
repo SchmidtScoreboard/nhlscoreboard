@@ -87,11 +87,12 @@ class Game:
         self.away_score = away_score
         self.home_score = home_score
         self.status = GameStatus.INVALID
+        self.game_id = 0
     def __repr__(self):
-        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.game_id,
+        return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.game_id,
             self.away, self.home,
             self.away_score, self.home_score,
-            self.start_time)
+            self.start_time, self.status)
 
 class Screen:
   def __init__(self):
@@ -123,6 +124,7 @@ class League(Screen):
       self.last_refresh = time.time()
       self.rotation_time = settings.get("rotation_time", 10)
       self.focus_teams = settings.get("focus_teams", [])
+      self.games = []
       self.reset()
   
   def reset(self):
@@ -151,7 +153,7 @@ class League(Screen):
     if len(self.games) == 0:
       self.active_index = -1
     elif self.favorite_teams_playing() is not None: 
-      active_index = self.favorite_teams_playing()
+      self.active_index = self.favorite_teams_playing()
     else:
       self.active_index = (self.active_index + 1) % len(self.games)
 
@@ -225,14 +227,14 @@ class Renderer:
         draw.rectangle(((0,0), (2, 6)), fill=game.away.secondary_color)
         draw.text((5, 1), game.away.display_name, font=team_font, fill=game.away.secondary_color)
         away_score_message = str(game.away_score)
-        w, h = team_font.getsize(away_score_message)
+        w, _ = team_font.getsize(away_score_message)
         draw.text((61 - w, 1), str(game.away_score), font=team_font, fill=game.away.secondary_color)
 
         draw.rectangle(((0,7), (64,13)), fill=game.home.primary_color)
         draw.rectangle(((0,7), (2, 13)), fill=game.home.secondary_color)
         draw.text((5, 8), game.home.display_name, font=team_font ,fill=game.home.secondary_color)
         home_score_message = str(game.home_score)
-        w, h = team_font.getsize(home_score_message)
+        w, _ = team_font.getsize(home_score_message)
         draw.text((61 - w, 8), str(game.home_score), font=team_font, fill=game.home.secondary_color)
 
         return (image, draw)
@@ -296,7 +298,7 @@ class Renderer:
         draw = ImageDraw.Draw(image) #  let's draw on this image
         draw.rectangle(((0,0), (64,6)), fill=background_color)
         font = ImageFont.load(small_font)
-        w, h = font.getsize(message)
+        w, _ = font.getsize(message)
         text_end = text_start + w
         secondary_start = text_end + 16
     
