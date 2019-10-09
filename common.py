@@ -23,7 +23,7 @@ square_3x3_filled = square_3x3_open + [(1,1)]
 wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), (4, -8), (5, -3), (5, -5), (5, -7), (6, -3), (6, -5), (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
 
 def reboot():
-  print("About to reboot, testing is {}".format(testing))
+  print("About to reboot, testing is {}".format(config.testing))
   if config.testing:
     os.system('sudo pkill python')
   else:

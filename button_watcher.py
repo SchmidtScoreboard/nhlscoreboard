@@ -1,8 +1,13 @@
 import time
 import logging
 import requests
+import config
 from common import *
-from fake_gpio import *
+try:
+    import RPi.GPIO as GPIO
+except:
+    from fake_gpio import *
+    config.testing = True
 log = logging.getLogger(__name__)
 
 is_pressed = False
@@ -52,8 +57,6 @@ def press_helper():
     else:
         short_press()
     double_press = False
-    
-
 
 def button_released():
     print("Released")
@@ -67,11 +70,14 @@ def button_released():
 
 
 if __name__  == "__main__":
-    log.setLevel(logging.DEBUG)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    if not config.testing:
+        log.setLevel(logging.DEBUG)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-    GPIO.add_event_detect(7, GPIO.RISING, callback=button_pressed, bouncetime=300)
-    GPIO.add_event_detect(7, GPIO.FALLING, callback=button_released, bouncetime=300)
-    while(True):
-        time.sleep(500) # Infinitely loop
+        GPIO.add_event_detect(7, GPIO.RISING, callback=button_pressed, bouncetime=300)
+        GPIO.add_event_detect(7, GPIO.FALLING, callback=button_released, bouncetime=300)
+        while(True):
+            time.sleep(500) # Infinitely loop
+    else:
+        long_press()

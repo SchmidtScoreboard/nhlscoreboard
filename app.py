@@ -1,5 +1,4 @@
 print("Begin Scoreboard App.py")
-testing = False
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -248,12 +247,6 @@ def initScreens():
 def run_webserver():
     create_app().run(host='0.0.0.0', port=5005)
 
-def button_press():
-    log.info("Button pressed at {}".format(time.time()))
-
-def button_release():
-    log.info("Button released at {}".format(time.time()))
-
 if __name__ == '__main__':
     # Set up the matrix options
     print("In app main")
@@ -273,7 +266,7 @@ if __name__ == '__main__':
         common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen("Dummy Error Message")
     
 
-    if not testing:
+    if not config.testing:
         run_webserver()
     else: #This is a terrible hack but it helps keep things running in test mode
         web_thread = threading.Thread(target=run_webserver)
