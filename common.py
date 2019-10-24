@@ -23,15 +23,21 @@ square_3x3_filled = square_3x3_open + [(1,1)]
 wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), (4, -8), (5, -3), (5, -5), (5, -7), (6, -3), (6, -5), (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
 
 def reboot():
-  print("About to reboot, testing is {}".format(config.testing))
   if config.testing:
-    os.system('sudo pkill python')
+    log.info("About to reboot, test mode")
+    exit()
   else:
+    log.info("About to reboot, production mode")
     os.system('sudo shutdown -r now')
 
 def get_settings():
-    with open(settings_path) as f:
+    try:
+      with open(settings_path) as f:
         settings = json.load(f) 
+    except:
+      with open(settings_template_path) as f:
+        settings = json.load(f)
+        write_settings(settings)
     return settings
 def write_settings(new_settings):
     with open(settings_path, "w+") as f:
@@ -51,7 +57,7 @@ class ActiveScreen(Enum):
     REFRESH = 100
     HOTSPOT = 101
     WIFI_DETAILS = 102
-    QR = 103
+    SYNC = 103
     ERROR = 999
 
 class Team:
@@ -119,29 +125,27 @@ class Screen:
 class League(Screen):
   def __init__(self, settings):
       super().__init__()
-      self.full_refresh_counter = 20
+      self.last_full_refresh_time = 0
       self.active_index = 0
-      self.last_refresh = time.time()
+      self.last_refresh = 0
       self.rotation_time = settings.get("rotation_time", 10)
       self.focus_teams = settings.get("focus_teams", [])
       self.games = []
-      self.reset()
   
   def reset(self):
       super().reset()
-      self.full_refresh_counter = 20
+      self.last_full_refresh_time = time.time()
       self.active_index = 0
 
   def refresh(self):
     #first, check if we need to do a full refresh
-    if self.full_refresh_counter == 0:
+    if time.time() - self.last_full_refresh_time > self.get_refresh_time() * 5:
       self.reset()
       log.info("Performing full refresh")
     elif (time.time() - self.last_refresh) > self.get_refresh_time():
       # if it's been more than X seconds since the last refresh, refresh all games
       log.info("Performing refresh")
       self.last_refresh = time.time()
-      self.full_refresh_counter -= 1
       try:
         for game in self.games:
           game.refresh()
@@ -188,6 +192,7 @@ class League(Screen):
 
   def handle_error(self, error_title, error_message):
     self.error = True
+    self.last_full_refresh_time = 0
     self.error_title = error_title
     self.error_message = error_message
 
@@ -248,7 +253,7 @@ class Renderer:
       image, draw = self.draw_text(title, centered=True, image=image, height=height, color=(255,0,0))
       return image
 
-    def draw_text(self, text, centered=False, x=None, y=None, width=None, height=None, color=None, image=None):
+    def draw_text(self, text, centered=False, x=None, y=None, width=None, height=None, color=None, image=None, font_filename=small_font):
         if image is None:
           image = Image.new("RGB", (self.width, self.height))
         if width is None:
@@ -261,7 +266,7 @@ class Renderer:
           y = height/2
         if color is None:
           color = (255,255,255)
-        font = ImageFont.load(small_font)
+        font = ImageFont.load(font_filename)
         draw = ImageDraw.Draw(image)
         
         w, h = font.getsize(text)
