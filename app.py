@@ -9,6 +9,7 @@ import subprocess
 import time
 import atexit
 import threading
+import version
 from common import *
 from setup_screens import *
 from error import *
@@ -167,6 +168,31 @@ def create_app():
             threading.Timer(3, reboot)
             return jsonify(settings)
 
+    @app.route('/showSync', methods=['POST'])
+    def showSync():
+        global common_data
+        global data_lock
+        with data_lock:
+            settings = get_settings()
+            if settings[SETUP_STATE_KEY] == SetupState.READY.value:
+                settings[SETUP_STATE_KEY] = SetupState.SYNC.value
+                settings[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC.value
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC
+                write_settings(settings)
+                return jsonify(settings)
+            else:
+                return jsonify(success=False)
+
+    @app.route('/reboot', methods=['POST'])
+    def reboot():
+        global data_lock
+        with data_lock:
+            if config.testing:
+                log.info("Testing, will not reboot")
+            else:
+                log.info("About to reboot")
+                os.system(reboot)
+
     # Used on Sync screen. When the app parses the IP code, it will send this API request
     @app.route('/sync', methods=['POST'])
     def sync():
@@ -176,6 +202,11 @@ def create_app():
             settings = get_settings()
             if settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
                 settings[SETUP_STATE_KEY] = SetupState.READY.value
+                interrupt()
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
+                common_data[SCREEN_ON_KEY] = True
+                draw()
+
                 settings[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL.value
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL
                 write_settings(settings)

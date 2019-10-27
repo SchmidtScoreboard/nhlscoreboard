@@ -7,6 +7,7 @@ import json
 import time
 import config
 import socket
+import version
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
 
@@ -15,6 +16,7 @@ SETUP_STATE_KEY = "setup_state"
 SCREENS_KEY = "screens"
 MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
+VERSION_KEY = "version"
 
 small_down_arrow_pixels = [(0,0), (1,0), (2,0), (3,0), (4,0), (1,-1), (2,-1), (3,-1), (2,-2)]
 small_up_arrow_pixels = [(2,0), (1,-1), (2,-1), (3,-1), (0,-2), (1,-2), (2,-2), (3,-2), (4,-2)]
@@ -41,7 +43,8 @@ def get_settings():
     return settings
 def write_settings(new_settings):
     with open(settings_path, "w+") as f:
-        json.dump(new_settings, f)
+      new_settings["version"] = version.version
+      json.dump(new_settings, f)
     
 def get_ip_address():
     try:

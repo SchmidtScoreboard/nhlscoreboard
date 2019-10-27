@@ -17,26 +17,29 @@ double_press = False
 
 localAddress = "http://127.0.0.1:5005/"
 
-#TODO update these times
-LONG_PRESS_TIME = 10 
+# TODO update these times
+LONG_PRESS_TIME = 10
 DOUBLE_PRESS_WINDOW = 0.5
 DOUBLE_PRESS_DEBOUNCE = 0.6
 
+
 def long_press():
     print("Long Press")
-    # TODO do request to reset everything
-    r = requests.request(requests.post, localAddress + "resetWifi" )
+    r = requests.post(url=localAddress + "resetWifi")
     print(r.status_code)
+
 
 def short_press():
     print("Short press")
     settings = get_settings()
-    r = requests.request(requests.post, localAddress + "setPower", json={SCREEN_ON_KEY: not settings[SCREEN_ON_KEY]})
+    r = requests.post(url=localAddress + "setPower",
+                      json={SCREEN_ON_KEY: not settings[SCREEN_ON_KEY]})
     print(r.status_code)
+
 
 def double_press():
     print("Double press")
-    r = requests.request(requests.post, localAddress + "sync" )
+    r = requests.post(url=localAddress + "showSync")
     print(r.status_code)
 
 
@@ -51,6 +54,7 @@ def button_pressed():
             double_press = False
         press_time = now
 
+
 def press_helper():
     if double_press:
         double_press()
@@ -58,9 +62,10 @@ def press_helper():
         short_press()
     double_press = False
 
+
 def button_released():
     print("Released")
-    if is_pressed: 
+    if is_pressed:
         is_pressed = False
         now = time.time()
         if now - press_time > LONG_PRESS_TIME:
@@ -69,15 +74,17 @@ def button_released():
             threading.Timer(DOUBLE_PRESS_DEBOUNCE, short_press_helper)
 
 
-if __name__  == "__main__":
+if __name__ == "__main__":
     if not config.testing:
         log.setLevel(logging.DEBUG)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        GPIO.add_event_detect(7, GPIO.RISING, callback=button_pressed, bouncetime=300)
-        GPIO.add_event_detect(7, GPIO.FALLING, callback=button_released, bouncetime=300)
+        GPIO.add_event_detect(
+            7, GPIO.RISING, callback=button_pressed, bouncetime=300)
+        GPIO.add_event_detect(
+            7, GPIO.FALLING, callback=button_released, bouncetime=300)
         while(True):
-            time.sleep(500) # Infinitely loop
+            time.sleep(500)  # Infinitely loop
     else:
-        long_press()
+        double_press()
