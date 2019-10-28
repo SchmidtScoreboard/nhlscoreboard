@@ -108,3 +108,4 @@ out.png
 .mypy_cache/
 
 rpi-rgb-led-mat*
+wpa_supplicant.conf
