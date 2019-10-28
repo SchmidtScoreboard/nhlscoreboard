@@ -93,6 +93,7 @@ def create_app():
             content = request.get_json()
             old_settings = get_settings()
             merged = {**old_settings, **content}
+            log.info("Got settings: {}\n, Old Settings:  {}\n, Merged: {}\n".format( content, old_settings, merged))
             write_settings(merged)
             initScreens()
         resp = jsonify(get_settings())
@@ -233,8 +234,10 @@ def create_app():
                 draw()
                 write_settings(settings)
                 return jsonify(settings)
+            elif settings[SETUP_STATE_KEY] == SetupState.WIFI_CONNECT.value:
+                #Allow wifi connect success on this screen, too
+                return jsonify(settings)
             else:
-                # TODO find a better way to return failure
                 response = jsonify(success=False)
                 response.status_code = 500
                 return response
