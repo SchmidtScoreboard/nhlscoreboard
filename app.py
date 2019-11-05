@@ -93,7 +93,8 @@ def create_app():
             content = request.get_json()
             old_settings = get_settings()
             merged = {**old_settings, **content}
-            log.info("Got settings: {}\n, Old Settings:  {}\n, Merged: {}\n".format( content, old_settings, merged))
+            log.info("Got settings: {}\n, Old Settings:  {}\n, Merged: {}\n".format(
+                content, old_settings, merged))
             write_settings(merged)
             initScreens()
         resp = jsonify(get_settings())
@@ -123,7 +124,8 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            if settings[SETUP_STATE_KEY] == SetupState.READY.value:
+            if settings[SETUP_STATE_KEY] == SetupState.READY.value or settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
+                settings[SETUP_STATE_KEY] = SetupState.READY.value
                 interrupt()
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
                 common_data[SCREEN_ON_KEY] = True
@@ -167,6 +169,7 @@ def create_app():
             write_settings(settings)
             subprocess.Popen([hotspot_on])
             threading.Timer(3, reboot)
+            eettings[SETUP_STATE_KEY] = SetupState.READY.value
             return jsonify(settings)
 
     @app.route('/showSync', methods=['POST'])
@@ -176,9 +179,21 @@ def create_app():
         with data_lock:
             settings = get_settings()
             if settings[SETUP_STATE_KEY] == SetupState.READY.value:
+                interrupt()
                 settings[SETUP_STATE_KEY] = SetupState.SYNC.value
                 settings[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC.value
+                draw()
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC
+                write_settings(settings)
+                return jsonify(settings)
+            elif settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
+                settings[SETUP_STATE_KEY] = SetupState.READY.value
+                interrupt()
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
+                common_data[SCREEN_ON_KEY] = True
+                draw()
+                settings[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL.value
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL
                 write_settings(settings)
                 return jsonify(settings)
             else:
@@ -188,11 +203,13 @@ def create_app():
     def reboot():
         global data_lock
         with data_lock:
+            settings = get_settings()
             if config.testing:
                 log.info("Testing, will not reboot")
             else:
                 log.info("About to reboot")
                 os.system(reboot)
+            return jsonify(settings)
 
     # Used on Sync screen. When the app parses the IP code, it will send this API request
     @app.route('/sync', methods=['POST'])
@@ -207,7 +224,6 @@ def create_app():
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
                 common_data[SCREEN_ON_KEY] = True
                 draw()
-
                 settings[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL.value
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL
                 write_settings(settings)
@@ -235,7 +251,7 @@ def create_app():
                 write_settings(settings)
                 return jsonify(settings)
             elif settings[SETUP_STATE_KEY] == SetupState.WIFI_CONNECT.value:
-                #Allow wifi connect success on this screen, too
+                # Allow wifi connect success on this screen, too
                 return jsonify(settings)
             else:
                 response = jsonify(success=False)
