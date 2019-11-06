@@ -2,11 +2,14 @@ import time
 import logging
 import requests
 import config
+import git
+import subprocess
 from common import *
+import signal
+import sys
 try:
     import RPi.GPIO as GPIO
 except:
-    from fake_gpio import *
     config.testing = True
 log = logging.getLogger(__name__)
 
@@ -21,6 +24,8 @@ localAddress = "http://127.0.0.1:5005/"
 LONG_PRESS_TIME = 10
 DOUBLE_PRESS_WINDOW = 0.5
 DOUBLE_PRESS_DEBOUNCE = 0.6
+
+process = None
 
 
 def long_press():
@@ -74,9 +79,25 @@ def button_released():
             threading.Timer(DOUBLE_PRESS_DEBOUNCE, short_press_helper)
 
 
+def handler(signum, frame):
+    print('Signal handler called with signal', signum)
+    process.kill()
+    exit(0)
+
+
 if __name__ == "__main__":
+    # First, get a new version
+    root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    repo = git.Repo(root_path)
+    repo.git.pull()
+
+    signal.signal(signal.SIGINT, handler)
+
+    app_path = os.path.join(root_path, "app.py")
+    print("Starting app at " + app_path)
+    process = subprocess.Popen(["python3", app_path])
+    print("App started at pid {}".format(process.pid))
     if not config.testing:
-        log.setLevel(logging.DEBUG)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -84,7 +105,14 @@ if __name__ == "__main__":
             7, GPIO.RISING, callback=button_pressed, bouncetime=300)
         GPIO.add_event_detect(
             7, GPIO.FALLING, callback=button_released, bouncetime=300)
-        while(True):
-            time.sleep(500)  # Infinitely loop
-    else:
-        double_press()
+    while(True):
+        if config.testing:
+            line = input("L for long, S for short, D for double").rstrip()
+            if line == "L":
+                long_press()
+            elif line == "S":
+                short_press()
+            elif line == "D":
+                double_press()
+        else:
+            time.sleep(1)

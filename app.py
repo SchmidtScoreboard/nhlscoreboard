@@ -168,7 +168,7 @@ def create_app():
             settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
             write_settings(settings)
             subprocess.Popen([hotspot_on])
-            threading.Timer(3, reboot)
+            threading.Timer(3, restart_scoreboard)
             eettings[SETUP_STATE_KEY] = SetupState.READY.value
             return jsonify(settings)
 
@@ -204,11 +204,8 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
-            if config.testing:
-                log.info("Testing, will not reboot")
-            else:
-                log.info("About to reboot")
-                os.system(reboot)
+            log.info("About to reboot")
+            restart_scoreboard()
             return jsonify(settings)
 
     # Used on Sync screen. When the app parses the IP code, it will send this API request
