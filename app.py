@@ -16,6 +16,7 @@ from error import *
 from info import *
 from mlb import *
 from nhl import *
+from clock import *
 from PIL import Image, ImageDraw, ImageFont
 from string import Template
 from flask import jsonify
@@ -296,9 +297,11 @@ def initScreens():
     log.info("Got MLB")
     nhl = NHL(nhl_settings)
     log.info("Got NHL")
+    clock = ClockScreen()
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
+        common_data[SCREENS_KEY][ActiveScreen.CLOCK] = clock 
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
             get_settings()[ACTIVE_SCREEN_KEY])
 

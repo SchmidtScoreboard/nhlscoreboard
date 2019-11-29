@@ -16,6 +16,14 @@
             "focus_teams": [],
             "name": "MLB",
             "subtitle": "View scores from MLB games"
+        },
+        {
+            "rotation_time": 10,
+            "id": 99,
+            "always_rotate": false,
+            "focus_teams": [],
+            "name": "Clock",
+            "subtitle": "Show the current time"
         }
     ],
     "screen_on": true,
