@@ -54,10 +54,6 @@ render_thread = threading.Thread()
 def create_app():
     app = Flask(__name__)
 
-    def interrupt():
-        global render_thread
-        render_thread.cancel()
-
     def draw_image():
         # First, manage the setup state
         with data_lock:
@@ -97,6 +93,9 @@ def create_app():
                 content, old_settings, merged))
             write_settings(merged)
             initScreens()
+            interrupt()
+            draw()
+
         resp = jsonify(get_settings())
         return resp
 
@@ -144,7 +143,7 @@ def create_app():
 
     # Used to set the wifi configuration
     @app.route('/wifi', methods=['POST'])
-    def setup_wifi():
+    def setupWifi():
         global common_data
         global data_lock
         with data_lock:
@@ -158,18 +157,20 @@ def create_app():
             return jsonify(settings)
 
     # This should also happen when the button is pressed and held for ten seconds
-    @app.route('/reset_wifi', methods=['POST'])
-    def reset_wifi():
+    @app.route('/resetWifi', methods=['POST'])
+    def resetWifi():
         global common_data
         global data_lock
         with data_lock:
             settings = get_settings()
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
             settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
+            common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
             write_settings(settings)
-            subprocess.Popen([hotspot_on])
-            threading.Timer(3, restart_scoreboard)
-            eettings[SETUP_STATE_KEY] = SetupState.READY.value
+            subprocess.call([hotspot_on])
+            restart_thread = threading.Timer(5, restart_scoreboard)
+            restart_thread.start()
+            settings[SETUP_STATE_KEY] = SetupState.READY.value
             return jsonify(settings)
 
     @app.route('/showSync', methods=['POST'])
@@ -205,7 +206,9 @@ def create_app():
         with data_lock:
             settings = get_settings()
             log.info("About to reboot")
-            restart_scoreboard()
+            common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
+            restart_thread = threading.Timer(5, restart_scoreboard)
+            restart_thread.start()
             return jsonify(settings)
 
     # Used on Sync screen. When the app parses the IP code, it will send this API request
@@ -280,6 +283,11 @@ def create_app():
     return app
 
 
+def interrupt():
+    global render_thread
+    render_thread.cancel()
+
+
 def initScreens():
     screen_settings = get_settings()["screens"]
     try:
@@ -301,6 +309,7 @@ def initScreens():
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
             get_settings()[ACTIVE_SCREEN_KEY])
+    log.info("Done initScreens")
 
 
 def run_webserver():
@@ -320,6 +329,8 @@ if __name__ == '__main__':
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
         common_data[SCREENS_KEY] = {
             ActiveScreen.REFRESH: InfoScreen("Refreshing...")}
+        common_data[SCREENS_KEY][ActiveScreen.REBOOT] = InfoScreen(
+            "Rebooting...")
         common_data[MATRIX_KEY] = RGBMatrix(options=options)
         common_data[SCREENS_KEY][ActiveScreen.SYNC] = SyncScreen()
         common_data[SCREENS_KEY][ActiveScreen.HOTSPOT] = WifiHotspot()

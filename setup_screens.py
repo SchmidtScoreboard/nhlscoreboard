@@ -106,7 +106,7 @@ class ConnectionScreen(SetupScreen):
                 with open(wpa_path, "w+") as wpa_supplicant:
                     wpa_supplicant.write(self.supplicant)
                     self.fired = True
-                    subprocess.Popen([self.script])
+                    subprocess.call([self.script])
                     restart_scoreboard()
 
             elif time_spent > 2.0:
