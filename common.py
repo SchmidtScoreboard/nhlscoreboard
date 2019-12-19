@@ -58,6 +58,7 @@ def get_ip_address():
 class ActiveScreen(Enum):
     NHL = 0
     MLB = 1
+    CLOCK = 50
     REBOOT = 99
     REFRESH = 100
     HOTSPOT = 101
