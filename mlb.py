@@ -62,11 +62,11 @@ class MLB(League):
         print("Getting new MLB Data")
         super().reset()
         self.games = []
-        try:
-            response = requests.get(url=AWS_URL + "mlb", json=MLB_QUERY).json()
-            data = response['data']
-            self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
-                                  game['inning'], game['is_inning_top']) for game in data['games']]
+        response = requests.get(
+            url=AWS_URL + "mlb", json={'query': MLB_QUERY}).json()
+        data = response['data']
+        self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
+                              game['inning'], game['is_inning_top']) for game in data['games']]
 
         except Exception as e:
             log.error("Error: " + str(e))
