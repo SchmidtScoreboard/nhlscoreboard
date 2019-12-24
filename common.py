@@ -20,7 +20,9 @@ MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
 VERSION_KEY = "version"
 
-AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Beta/'
+# AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Beta/'
+AWS_URL = 'http://127.0.0.1:1337/'
+
 
 small_down_arrow_pixels = [(0, 0), (1, 0), (2, 0),
                            (3, 0), (4, 0), (1, -1), (2, -1), (3, -1), (2, -2)]
@@ -179,12 +181,7 @@ class League(Screen):
             # if it's been more than X seconds since the last refresh, refresh all games
             log.info("Performing refresh")
             self.last_reset = time.time()
-            try:
-                self.reset()
-                self.error = False
-            except:
-                self.handle_error(
-                    "Disconnected", "Use the scoreboard app to get reconnected")
+            self.reset()
 
         # Regardless, move the active game up one, unless a favorite team is playing
         if len(self.games) == 0:

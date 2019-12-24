@@ -59,16 +59,17 @@ class MLB(League):
         self.renderer = MLBRenderer(64, 32)
 
     def reset(self):
+        print("Getting new MLB Data")
         super().reset()
         self.games = []
         try:
-            response = requests.get(url=AWS_URL + "mlb", json: MLB_QUERY).json()
+            response = requests.get(url=AWS_URL + "mlb", json=MLB_QUERY).json()
             data = response['data']
             self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
                                   game['inning'], game['is_inning_top']) for game in data['games']]
 
         except Exception as e:
-            print("Error: " + str(e))
+            log.error("Error: " + str(e))
             error_title = "Disconnected"
             error_message = "Use the Scoreboard app to get reconnected"
             self.handle_error(error_title, error_message)

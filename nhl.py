@@ -6,15 +6,6 @@ import pytz
 from dateutil.parser import *
 from common import *
 
-API = 'https://statsapi.web.nhl.com'
-API_FLAG = '/api/v1/'
-LINESCORE = '/linescore'
-GAME = '/game/'
-SCHEDULE = 'schedule'
-FEED = '/feed/live'
-TEAMS = "/teams/"
-
-
 NHL_QUERY = """{
     games {
         common {
@@ -67,16 +58,19 @@ class NHL(League):
         self.renderer = NHLRenderer(64, 32)
 
     def reset(self):
+        print("Getting new NHL")
         super().reset()
         self.games = []
         try:
 
-            response = requests.get(url=AWS_URL + "nhl", json: NHL_QUERY).json()
+            response = requests.get(
+                url=AWS_URL + "nhl", json={'query': NHL_QUERY}).json()
+            print(response)
             data = response['data']
             self.games = [NHLGame(game['common'], game['away_powerplay'], game['home_powerplay'],
                                   game['away_skaters'], game['home_skaters']) for game in data['games']]
         except Exception as e:
-            print("Error: " + str(e))
+            log.error("Error: " + str(e))
             error_title = "Disconnected"
             error_message = "Use the Scoreboard app to get reconnected"
             self.handle_error(error_title, error_message)
