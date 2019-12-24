@@ -1,3 +1,4 @@
+import json
 from collections import namedtuple
 Color = namedtuple('Color', 'red green blue')
 
@@ -10,14 +11,14 @@ inputString = """108 LAA Angels Los Angeles
 114 CLE Indians Cleveland
 115 COL Rockies Colorado
 116 DET Tigers Detroit
-117 HOU Astros Houston  
+117 HOU Astros Houston
 118 KC Royals Kansas City
 119 LAD Dodgers Los Angeles
 120 WSH Nationals Washington
 121 NYM Mets New York
 133 OAK Athletics Oakland
-134 PIT Pirates Pittsburgh  
-135 SD Padres San Diego 
+134 PIT Pirates Pittsburgh
+135 SD Padres San Diego
 136 SEA Mariners Seattle
 137 SF Giants San Francisco
 138 STL Cardinals St. Louis
@@ -30,7 +31,10 @@ inputString = """108 LAA Angels Los Angeles
 145 CWS White Sox Chicago
 146 MIA Marlins Miami
 147 NYY Yankees New York
-158 MIL Brewers Milkwaukee"""
+158 MIL Brewers Milkwaukee
+159 NL NL All Stars
+160 AL AL All Stars"""
+
 
 primaryColorMap = {
     108: Color(186, 0, 33),
@@ -62,7 +66,9 @@ primaryColorMap = {
     145: Color(39, 37, 31),
     146: Color(0, 0, 0),
     147: Color(12, 35, 64),
-    158: Color(19, 41, 75)
+    158: Color(19, 41, 75),
+    159: Color(255, 0, 0),
+    160: Color(0, 0, 255),
 }
 
 
@@ -96,10 +102,12 @@ secondaryColorMap = {
     145: Color(196, 206, 212),
     146: Color(0, 163, 224),
     147: Color(255, 255, 255),
-    158: Color(182, 146, 46)
+    158: Color(182, 146, 46),
+    159: Color(255, 255, 255),
+    160: Color(255, 255, 255)
 }
 nhlPrimaryColorMap = {
-    # todo fill in color map 
+    # todo fill in color map
     1: Color(200, 16, 46),
     2: Color(0, 48, 135),
     3: Color(0, 51, 160),
@@ -130,10 +138,10 @@ nhlPrimaryColorMap = {
     30: Color(21, 71, 52),
     52: Color(4, 30, 66),
     53: Color(140, 38, 51),
-    54: Color(185, 151, 91) }
+    54: Color(185, 151, 91)}
 
 nhlSecondaryColorMap = {
-    # todo fill in color map 
+    # todo fill in color map
     1: Color(0, 0, 0),
     2: Color(252, 76, 2),
     3: Color(200, 16, 46),
@@ -164,10 +172,9 @@ nhlSecondaryColorMap = {
     30: Color(166, 25, 46),
     52: Color(162, 170, 173),
     53: Color(226, 214, 181),
-    54: Color(0, 0, 0) }
+    54: Color(0, 0, 0)}
 
 nhlJson = """{
-  "copyright" : "NHL and the NHL Shield are registered trademarks of the National Hockey League. NHL and NHL team marks are the property of the NHL and its teams. © NHL 2019. All Rights Reserved.",
   "teams" : [ {
     "id" : 1,
     "name" : "New Jersey Devils",
@@ -1407,17 +1414,27 @@ nhlJson = """{
     "active" : true
   } ]
 }"""
-import json
 nhl = json.loads(nhlJson)
 teams = nhl["teams"]
+
+# for team in teams:
+#     primaryColor = nhlPrimaryColorMap[int(team["id"])]
+#     secondaryColor = nhlSecondaryColorMap[int(team["id"])]
+#     print("""{} : Team("{}", "{}", "{}", Color.fromRGBO({}, {}, {}, 1.0), Color.fromRGBO({}, {}, {}, 1.0)),"""
+#        .format(team["id"], team["locationName"], team["teamName"], team["abbreviation"],
+#        primaryColor.red, primaryColor.green, primaryColor.blue,
+#        secondaryColor.red, secondaryColor.green, secondaryColor.blue))
+
+
+def color_to_hex(color):
+    return "{:02x}{:02x}{:02x}".format(color.red, color.green, color.blue)
+
 
 for team in teams:
     primaryColor = nhlPrimaryColorMap[int(team["id"])]
     secondaryColor = nhlSecondaryColorMap[int(team["id"])]
-    print("""{} : Team("{}", "{}", "{}", Color.fromRGBO({}, {}, {}, 1.0), Color.fromRGBO({}, {}, {}, 1.0)),"""
-       .format(team["id"], team["locationName"], team["teamName"], team["abbreviation"], 
-       primaryColor.red, primaryColor.green, primaryColor.blue, 
-       secondaryColor.red, secondaryColor.green, secondaryColor.blue))
+    print("""{}: {{id: {}, city: "{}", name: "{}", display_name: "{}", abbreviation: "{}", primary_color: "{}", secondary_color: "{}"}},""".format(
+        team["id"], team["id"], team["locationName"], team["teamName"], team["teamName"], team["abbreviation"], color_to_hex(primaryColor), color_to_hex(secondaryColor)))
 
 
 # split = inputString.splitlines()
@@ -1427,8 +1444,8 @@ for team in teams:
 #     primaryColor = primaryColorMap[int(words[0])]
 #     secondaryColor = secondaryColorMap[int(words[0])]
 #     print("""{} : Team("{}", "{}", "{}", Color.fromRGBO({}, {}, {}, 1.0), Color.fromRGBO({}, {}, {}, 1.0),"""
-#        .format(words[0], words[3], words[2], words[1], 
-#        primaryColor.red, primaryColor.green, primaryColor.blue, 
+#        .format(words[0], words[3], words[2], words[1],
+#        primaryColor.red, primaryColor.green, primaryColor.blue,
 #        secondaryColor.red, secondaryColor.green, secondaryColor.blue))
 # primary = []
 # secondary = []
@@ -1437,7 +1454,7 @@ for team in teams:
 #     words = splat.split(" ")
 #     colors = input(words[2] + " Primary Colors?\n").split(" ")
 #     primary.append(words[0] + ": Color(" + colors[0] + ", " + colors[1] + ", " + colors[2] + "),")
-    
+
 #     colors = input(words[2] + " Secondary Colors?\n").split(" ")
 #     secondary.append(words[0] + ": Color(" + colors[0] + ", " + colors[1] + ", " + colors[2] + "),")
 #     print("\nPrimary:")
@@ -1447,4 +1464,3 @@ for team in teams:
 #     print("\nSeondary:")
 #     for p in secondary:
 #         print(p)
-
