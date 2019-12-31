@@ -1417,50 +1417,25 @@ nhlJson = """{
 nhl = json.loads(nhlJson)
 teams = nhl["teams"]
 
-# for team in teams:
-#     primaryColor = nhlPrimaryColorMap[int(team["id"])]
-#     secondaryColor = nhlSecondaryColorMap[int(team["id"])]
-#     print("""{} : Team("{}", "{}", "{}", Color.fromRGBO({}, {}, {}, 1.0), Color.fromRGBO({}, {}, {}, 1.0)),"""
-#        .format(team["id"], team["locationName"], team["teamName"], team["abbreviation"],
-#        primaryColor.red, primaryColor.green, primaryColor.blue,
-#        secondaryColor.red, secondaryColor.green, secondaryColor.blue))
-
 
 def color_to_hex(color):
     return "{:02x}{:02x}{:02x}".format(color.red, color.green, color.blue)
 
 
-for team in teams:
-    primaryColor = nhlPrimaryColorMap[int(team["id"])]
-    secondaryColor = nhlSecondaryColorMap[int(team["id"])]
+# NHL Shit
+# for team in teams:
+#     primaryColor = nhlPrimaryColorMap[int(team["id"])]
+#     secondaryColor = nhlSecondaryColorMap[int(team["id"])]
+#     print("""{}: {{id: {}, city: "{}", name: "{}", display_name: "{}", abbreviation: "{}", primary_color: "{}", secondary_color: "{}"}},""".format(
+#         team["id"], team["id"], team["locationName"], team["teamName"], team["teamName"], team["abbreviation"], color_to_hex(primaryColor), color_to_hex(secondaryColor)))
+
+
+# MLB shit
+split = inputString.splitlines()
+
+for splat in split:
+    words = splat.split(" ")
+    primaryColor = primaryColorMap[int(words[0])]
+    secondaryColor = secondaryColorMap[int(words[0])]
     print("""{}: {{id: {}, city: "{}", name: "{}", display_name: "{}", abbreviation: "{}", primary_color: "{}", secondary_color: "{}"}},""".format(
-        team["id"], team["id"], team["locationName"], team["teamName"], team["teamName"], team["abbreviation"], color_to_hex(primaryColor), color_to_hex(secondaryColor)))
-
-
-# split = inputString.splitlines()
-
-# for splat in split:
-#     words = splat.split(" ")
-#     primaryColor = primaryColorMap[int(words[0])]
-#     secondaryColor = secondaryColorMap[int(words[0])]
-#     print("""{} : Team("{}", "{}", "{}", Color.fromRGBO({}, {}, {}, 1.0), Color.fromRGBO({}, {}, {}, 1.0),"""
-#        .format(words[0], words[3], words[2], words[1],
-#        primaryColor.red, primaryColor.green, primaryColor.blue,
-#        secondaryColor.red, secondaryColor.green, secondaryColor.blue))
-# primary = []
-# secondary = []
-
-# for splat in split:
-#     words = splat.split(" ")
-#     colors = input(words[2] + " Primary Colors?\n").split(" ")
-#     primary.append(words[0] + ": Color(" + colors[0] + ", " + colors[1] + ", " + colors[2] + "),")
-
-#     colors = input(words[2] + " Secondary Colors?\n").split(" ")
-#     secondary.append(words[0] + ": Color(" + colors[0] + ", " + colors[1] + ", " + colors[2] + "),")
-#     print("\nPrimary:")
-#     for p in primary:
-#         print(p)
-
-#     print("\nSeondary:")
-#     for p in secondary:
-#         print(p)
+        words[0], words[0], words[3:], words[2], words[2], words[1], color_to_hex(primaryColor), color_to_hex(secondaryColor)))
