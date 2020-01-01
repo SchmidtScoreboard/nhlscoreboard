@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     app_path = os.path.join(root_path, "app.py")
     print("Starting app at " + app_path)
-    process = subprocess.Popen(["python3", app_path])
+    process = subprocess.Popen(["sudo", "python3", app_path])
     print("App started at pid {}".format(process.pid))
     if not config.testing:
         GPIO.setmode(GPIO.BOARD)

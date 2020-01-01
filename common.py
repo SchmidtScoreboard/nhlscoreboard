@@ -92,7 +92,7 @@ def hexToRGB(hex):
 
 class Team:
     def __init__(self, common):
-        self.id = common['id']
+        self.id = int(common['id'])
         self.name = common['name']
         self.display_name = common['display_name'].upper()
         self.city = common['city']
@@ -135,7 +135,7 @@ class Game:
         self.home = Team(common['home_team'])
         self.away_score = common['away_score']
         self.home_score = common['home_score']
-        self.status = common['status']
+        self.status = GameStatus.stringToValue(common['status'])
         self.start_time = common['start_time']
         self.ordinal = common['ordinal']
         time = parse(self.start_time).astimezone(
