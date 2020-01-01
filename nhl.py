@@ -45,10 +45,10 @@ NHL_QUERY = """{
 class NHLGame(Game):
     def __init__(self, common, away_powerplay, home_powerplay, away_players, home_players):
         Game.__init__(self, common)
-        self.away_powerplay = away_powerplay
-        self.home_powerplay = home_powerplay
-        self.away_skaters = away_players
-        self.home_skaters = home_players
+        self.away_powerplay = bool(away_powerplay)
+        self.home_powerplay = bool(home_powerplay)
+        self.away_skaters = int(away_players)
+        self.home_skaters = int(home_players)
 
 
 class NHL(League):
@@ -93,7 +93,7 @@ class NHLRenderer(Renderer):
 
         # add FINAl
         if game.status == GameStatus.END:
-            draw.text((37, 22), game.current_period_time,
+            draw.text((37, 22), "FINAL",
                       font=team_font, fill=(255, 255, 0))
         else:
             # add powerplay

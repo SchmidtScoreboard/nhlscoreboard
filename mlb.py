@@ -45,11 +45,11 @@ MLB_QUERY = """{
 class MLBGame(Game):
     def __init__(self, common, outs, balls, strikes, inning, is_inning_top):
         Game.__init__(self, common)
-        self.outs = outs
-        self.balls = balls
-        self.strikes = strikes
-        self.inning = inning
-        self.is_inning_top = is_inning_top
+        self.outs = int(outs)
+        self.balls = int(balls)
+        self.strikes = int(strikes)
+        self.inning = int(inning)
+        self.is_inning_top = bool(is_inning_top)
 
 
 class MLB(League):
