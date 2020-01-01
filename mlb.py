@@ -11,6 +11,7 @@ MLB_QUERY = """{
             home_team {
                 id
                 name
+                city
                 display_name
                 abbreviation
                 primary_color
@@ -19,11 +20,14 @@ MLB_QUERY = """{
             away_team {
                 id
                 name
+                city
                 display_name
                 abbreviation
                 primary_color
                 secondary_color
             }
+            away_score
+            home_score
             status
             ordinal
             start_time
@@ -38,14 +42,9 @@ MLB_QUERY = """{
 }"""
 
 
-class MLBTeam(Team):
-    def __init__(self, team_json):
-        self = Team.build(team_json)
-
-
 class MLBGame(Game):
     def __init__(self, common, outs, balls, strikes, inning, is_inning_top):
-        self = Game.build(common)
+        Game.__init__(self, common)
         self.outs = outs
         self.balls = balls
         self.strikes = strikes
@@ -59,15 +58,14 @@ class MLB(League):
         self.renderer = MLBRenderer(64, 32)
 
     def reset(self):
-        print("Getting new MLB Data")
         super().reset()
         self.games = []
-        response = requests.get(
-            url=AWS_URL + "mlb", json={'query': MLB_QUERY}).json()
-        data = response['data']
-        self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
-                              game['inning'], game['is_inning_top']) for game in data['games']]
-
+        try:
+            response = requests.get(
+                url=AWS_URL + "mlb", json={'query': MLB_QUERY}).json()
+            data = response['data']
+            self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
+                                  game['inning'], game['is_inning_top']) for game in data['games']]
         except Exception as e:
             log.error("Error: " + str(e))
             error_title = "Disconnected"

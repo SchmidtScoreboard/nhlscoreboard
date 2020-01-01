@@ -10,6 +10,7 @@ import socket
 import version
 import signal
 import pytz
+from dateutil.parser import *
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
 
@@ -20,8 +21,8 @@ MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
 VERSION_KEY = "version"
 
-# AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Beta/'
-AWS_URL = 'http://127.0.0.1:1337/'
+AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Beta/'
+# AWS_URL = 'http://127.0.0.1:1337/'
 
 
 small_down_arrow_pixels = [(0, 0), (1, 0), (2, 0),
@@ -83,24 +84,21 @@ class ActiveScreen(Enum):
 
 
 def hexToRGB(hex):
-    return Color(0, 0, 0)
-    # return Color(int(hex[0:1], 16), int(hex[2:3], 16), int(hex(4: 5), 16))
+    red = hex[0:2]
+    green = hex[2:4]
+    blue = hex[4:6]
+    return Color(int(red, 16), int(green, 16), int(blue, 16))
 
 
 class Team:
-    def __init__(self, id, name, display_name, city, abbreviation, primary_color, secondary_color):
-        self.id = id
-        self.name = name
-        self.display_name = display_name
-        self.city = city
-        self.abbreviation = abbreviation
-        self.primary_color = primary_color
-        self.secondary_color = secondary_color
-
-    @staticmethod
-    def build(team_json):
-        return Team(team_json['id'], team_json['name'], team_json['display_name'],
-                    team_json['city'], team_json['abbreviation'], hexToRGB(team_json['primary_color']), hexToRGB(team_json['secondary_color']))
+    def __init__(self, common):
+        self.id = common['id']
+        self.name = common['name']
+        self.display_name = common['display_name']
+        self.city = common['city']
+        self.abbreviation = common['abbreviation']
+        self.primary_color = hexToRGB(common['primary_color'])
+        self.secondary_color = hexToRGB(common['secondary_color'])
 
     def __repr__(self):
         return "{!r}({!r}, {!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__,
@@ -116,16 +114,30 @@ class GameStatus(Enum):
     INTERMISSION = 3
     END = 4
 
+    @staticmethod
+    def stringToValue(string):
+        if string == "PREGAME":
+            return GameStatus.PREGAME
+        elif string == "ACTIVE":
+            return GameStatus.ACTIVE
+        elif string == "INTERMISSION":
+            return GameStatus.INTERMISSION
+        elif string == "END":
+            return GameStatus.END
+        else:
+            return GameStatus.INVALID
+
 
 class Game:
-    def __init__(self, id, away, home, away_score, home_score, ordinal, status, start_time):
-        self.id = id
-        self.away = away
-        self.home = home
-        self.away_score = away_score
-        self.home_score = home_score
-        self.status = status
-        self.start_time = start_time
+    def __init__(self, common):
+        self.id = common['id']
+        self.away = Team(common['away_team'])
+        self.home = Team(common['home_team'])
+        self.away_score = common['away_score']
+        self.home_score = common['home_score']
+        self.status = common['status']
+        self.start_time = common['start_time']
+        self.ordinal = common['ordinal']
         time = parse(self.start_time).astimezone(
             pytz.timezone("America/Chicago"))
         self.start_hour = time.hour % 12
@@ -133,11 +145,6 @@ class Game:
             self.start_hour = 12
         self.start_afternoon = "PM" if time.hour >= 12 else "AM"
         self.start_minute = time.minute
-
-    @staticmethod
-    def build(common):
-        return Game(common['id'], Team(common['away']), Team(common(
-            'home'), common['away_score']), common['home_score'], common['ordinal'], common['status'], common['start_time'])
 
 
 class Screen:
@@ -234,6 +241,7 @@ class Renderer:
         self.text_start = self.width
 
     def draw_big_scoreboard(self, game):
+        print("Drawing big scoreboard, game " + game.id)
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)  # let's draw on this image
         team_font = ImageFont.load(big_font)

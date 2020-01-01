@@ -12,6 +12,7 @@ NHL_QUERY = """{
             home_team {
                 id
                 name
+                city
                 display_name
                 abbreviation
                 primary_color
@@ -20,11 +21,14 @@ NHL_QUERY = """{
             away_team {
                 id
                 name
+                city
                 display_name
                 abbreviation
                 primary_color
                 secondary_color
             }
+            away_score
+            home_score
             status
             ordinal
             start_time
@@ -38,14 +42,9 @@ NHL_QUERY = """{
 }"""
 
 
-class NHLTeam(Team):
-    def __init__(self, team_json):
-        self = Team.build(team_json)
-
-
 class NHLGame(Game):
     def __init__(self, common, away_powerplay, home_powerplay, away_players, home_players):
-        self = Game.build(common)
+        Game.__init__(self, common)
         self.away_powerplay = away_powerplay
         self.home_powerplay = home_powerplay
         self.away_skaters = away_players
@@ -58,30 +57,27 @@ class NHL(League):
         self.renderer = NHLRenderer(64, 32)
 
     def reset(self):
-        print("Getting new NHL")
         super().reset()
-        self.games = []
-        try:
-
-            response = requests.get(
-                url=AWS_URL + "nhl", json={'query': NHL_QUERY}).json()
-            print(response)
-            data = response['data']
-            self.games = [NHLGame(game['common'], game['away_powerplay'], game['home_powerplay'],
-                                  game['away_skaters'], game['home_skaters']) for game in data['games']]
-        except Exception as e:
-            log.error("Error: " + str(e))
-            error_title = "Disconnected"
-            error_message = "Use the Scoreboard app to get reconnected"
-            self.handle_error(error_title, error_message)
+        # try:
+        response = requests.get(
+            url=AWS_URL + "nhl", json={'query': NHL_QUERY}).json()
+        data = response['data']
+        self.games = [NHLGame(game['common'], game['away_powerplay'], game['home_powerplay'],
+                              game['away_players'], game['home_players']) for game in data['games']]
+        # except Exception as e:
+        #     log.error("Error: " + str(e))
+        #     error_title = "Disconnected"
+        #     error_message = "Use the Scoreboard app to get reconnected"
+        #     self.handle_error(error_title, error_message)
 
     def get_image(self):
-        if self.error:
-            return self.renderer.draw_error(self.error_title, self.error_message)
-        elif self.active_index == -1:
+        if self.active_index == -1:
             return self.renderer.draw_info("No games :(")[0]
+        elif self.error:
+            return self.renderer.draw_error(self.error_title, self.error_message)
         else:
-            return self.renderer.render(self.games[self.active_index])
+            game = self.games[self.active_index]
+            return self.renderer.render(game)
 
 
 class NHLRenderer(Renderer):
@@ -96,7 +92,7 @@ class NHLRenderer(Renderer):
         draw.text((5, 22), game.ordinal, font=team_font, fill=(255, 255, 255))
 
         # add FINAl
-        if game.current_period_time == "Final":
+        if game.status == GameStatus.END:
             draw.text((37, 22), game.current_period_time,
                       font=team_font, fill=(255, 255, 0))
         else:
