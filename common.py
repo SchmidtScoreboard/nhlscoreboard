@@ -94,7 +94,7 @@ class Team:
     def __init__(self, common):
         self.id = common['id']
         self.name = common['name']
-        self.display_name = common['display_name']
+        self.display_name = common['display_name'].upper()
         self.city = common['city']
         self.abbreviation = common['abbreviation']
         self.primary_color = hexToRGB(common['primary_color'])
