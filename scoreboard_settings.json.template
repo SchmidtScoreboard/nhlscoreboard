@@ -19,7 +19,7 @@
         },
         {
             "rotation_time": 10,
-            "id": 99,
+            "id": 50,
             "always_rotate": false,
             "focus_teams": [],
             "name": "Clock",
