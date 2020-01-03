@@ -145,6 +145,8 @@ class Game:
             self.start_hour = 12
         self.start_afternoon = "PM" if time.hour >= 12 else "AM"
         self.start_minute = time.minute
+        if(self.status == GameStatus.PREGAME):
+            self.ordinal = f"{self.start_hour}:{self.start_minute} {self.start_afternoon}"
 
 
 class Screen:
