@@ -43,8 +43,8 @@ MLB_QUERY = """{
 
 
 class MLBGame(Game):
-    def __init__(self, common, outs, balls, strikes, inning, is_inning_top):
-        Game.__init__(self, common)
+    def __init__(self, timezone, common, outs, balls, strikes, inning, is_inning_top):
+        Game.__init__(self, timezone, common)
         self.outs = int(outs)
         self.balls = int(balls)
         self.strikes = int(strikes)
@@ -53,8 +53,8 @@ class MLBGame(Game):
 
 
 class MLB(League):
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, settings, timezone):
+        super().__init__(settings, timezone)
         self.renderer = MLBRenderer(64, 32)
 
     def reset(self):
@@ -64,7 +64,7 @@ class MLB(League):
             response = requests.get(
                 url=AWS_URL + "mlb", json={'query': MLB_QUERY}).json()
             data = response['data']
-            self.games = [MLBGame(game['common'], game['outs'], game['balls'], game['strikes'],
+            self.games = [MLBGame(self.timezone, game['common'], game['outs'], game['balls'], game['strikes'],
                                   game['inning'], game['is_inning_top']) for game in data['games']]
         except Exception as e:
             log.error("Error: " + str(e))

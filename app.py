@@ -301,15 +301,15 @@ def initScreens():
     print(nhl_settings)
     print(mlb_settings)
     log.info("Refreshing Sports")
-    mlb = MLB(mlb_settings)
+    mlb = MLB(mlb_settings, get_settings()["timezone"])
     log.info("Got MLB")
-    nhl = NHL(nhl_settings)
+    nhl = NHL(nhl_settings, get_settings()["timezone"])
     log.info("Got NHL")
     clock = ClockScreen()
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
-        common_data[SCREENS_KEY][ActiveScreen.CLOCK] = clock 
+        common_data[SCREENS_KEY][ActiveScreen.CLOCK] = clock
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
             get_settings()[ACTIVE_SCREEN_KEY])
     log.info("Done initScreens")

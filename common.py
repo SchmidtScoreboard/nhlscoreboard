@@ -129,7 +129,7 @@ class GameStatus(Enum):
 
 
 class Game:
-    def __init__(self, common):
+    def __init__(self, timezone, common):
         self.id = common['id']
         self.away = Team(common['away_team'])
         self.home = Team(common['home_team'])
@@ -139,7 +139,7 @@ class Game:
         self.start_time = common['start_time']
         self.ordinal = common['ordinal']
         time = parse(self.start_time).astimezone(
-            pytz.timezone("America/Chicago"))
+            pytz.timezone(timezone))
         self.start_hour = time.hour % 12
         if self.start_hour == 0:
             self.start_hour = 12
@@ -173,11 +173,13 @@ class Screen:
 
 
 class League(Screen):
-    def __init__(self, settings):
+    def __init__(self, settings, timezone):
         super().__init__()
         self.last_full_refresh_time = 0
         self.active_index = 0
         self.last_reset = 0
+        self.settings = settings
+        self.timezone = timezone
         self.rotation_time = settings.get("rotation_time", 10)
         self.focus_teams = settings.get("focus_teams", [])
         self.games = []

@@ -43,8 +43,8 @@ NHL_QUERY = """{
 
 
 class NHLGame(Game):
-    def __init__(self, common, away_powerplay, home_powerplay, away_players, home_players):
-        Game.__init__(self, common)
+    def __init__(self, timezone, common, away_powerplay, home_powerplay, away_players, home_players):
+        Game.__init__(self, timezone, common)
         self.away_powerplay = bool(away_powerplay)
         self.home_powerplay = bool(home_powerplay)
         self.away_skaters = int(away_players)
@@ -52,8 +52,8 @@ class NHLGame(Game):
 
 
 class NHL(League):
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, settings, timezone):
+        super().__init__(settings, timezone)
         self.renderer = NHLRenderer(64, 32)
 
     def reset(self):
@@ -62,7 +62,7 @@ class NHL(League):
         response = requests.get(
             url=AWS_URL + "nhl", json={'query': NHL_QUERY}).json()
         data = response['data']
-        self.games = [NHLGame(game['common'], game['away_powerplay'], game['home_powerplay'],
+        self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
                               game['away_players'], game['home_players']) for game in data['games']]
         # except Exception as e:
         #     log.error("Error: " + str(e))
