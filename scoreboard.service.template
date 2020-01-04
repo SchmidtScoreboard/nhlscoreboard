@@ -3,8 +3,8 @@ Description=Scoreboard service
 
 [Service]
 Type=simple
-User=root                                # User that will spawn the process, defaults to the service name
-Group=root                               # Group that will spawn the process, defaults to the service name
+User=pi # User that will spawn the process, defaults to the service name
+Group=pi # Group that will spawn the process, defaults to the service name
 WorkingDirectory=/home/pi/nhlscoreboard
 ExecStart=/usr/bin/python3 /home/pi/nhlscoreboard/owner.py
 

@@ -5,10 +5,12 @@ import config
 import git
 import subprocess
 from common import *
+from files import *
 import signal
 import sys
 try:
     import RPi.GPIO as GPIO
+    config.testing = False
 except:
     config.testing = True
 log = logging.getLogger(__name__)
@@ -81,33 +83,38 @@ def button_released():
 
 def handler(signum, frame):
     print('Signal handler called with signal', signum)
-    process.kill()
+    subprocess.call(["sudo", "kill", "-9", str(process.pid)])
     exit(0)
 
 
 if __name__ == "__main__":
     # First, get a new version
     root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    repo = git.Repo(root_path)
-    repo.git.pull()
-
+    #repo = git.Repo(root_path)
+    #repo.git.pull()
+    
     signal.signal(signal.SIGINT, handler)
+    get_settings()
 
     app_path = os.path.join(root_path, "app.py")
     print("Starting app at " + app_path)
     if not config.testing:
+        print("Starting in production mode")
+        subprocess.call(["sudo", "chmod", "777", settings_path])
         process = subprocess.Popen(["sudo", "python3", app_path])
     else:
+        print("Starting in testing mode")
         process = subprocess.Popen(["python3", app_path])
     print("App started at pid {}".format(process.pid))
     if not config.testing:
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        pass
+        #GPIO.setmode(GPIO.BOARD)
+        #GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        GPIO.add_event_detect(
-            7, GPIO.RISING, callback=button_pressed, bouncetime=300)
-        GPIO.add_event_detect(
-            7, GPIO.FALLING, callback=button_released, bouncetime=300)
+        #GPIO.add_event_detect(
+        #    7, GPIO.RISING, callback=button_pressed, bouncetime=300)
+        #GPIO.add_event_detect(
+        #    7, GPIO.FALLING, callback=button_released, bouncetime=300)
     while(True):
         if config.testing:
             line = input("L for long, S for short, D for double").rstrip()
