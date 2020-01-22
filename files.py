@@ -2,6 +2,7 @@ import os
 import sys
 root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 settings_path = os.path.join(root_path, "scoreboard_settings.json")
+requirements_path = os.path.join(root_path, "requirements.txt")
 settings_template_path = os.path.join(
     root_path, "scoreboard_settings.json.template")
 wpa_template = os.path.join(root_path, "wpa_supplicant.conf.template")

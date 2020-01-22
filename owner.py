@@ -90,8 +90,15 @@ def handler(signum, frame):
 if __name__ == "__main__":
     # First, get a new version
     root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    repo = git.Repo(root_path)
-    repo.git.pull()
+    try:
+        repo = git.Repo(root_path)
+        repo.git.pull()
+    except:
+        print("Unable to pull from git, running with out of date software")
+
+    if not config.testing:
+        subprocess.call([sys.executable, "-m", "pip",
+                         "install", "-r", requirements_path])
 
     signal.signal(signal.SIGINT, handler)
     get_settings()
