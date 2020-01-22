@@ -9,7 +9,7 @@ from files import *
 import signal
 import sys
 try:
-    import RPi.GPIO as GPIO
+    from gpiozero import Button
     config.testing = False
 except:
     config.testing = True
@@ -100,23 +100,19 @@ if __name__ == "__main__":
     print("Starting app at " + app_path)
     if not config.testing:
         print("Starting in production mode")
-        subprocess.call(["sudo", "chmod", "777", settings_path])
-        process = subprocess.Popen(["sudo", "python3", app_path])
+        subprocess.call(["chmod", "777", settings_path])
+        process = subprocess.Popen(["python3", app_path])
     else:
         print("Starting in testing mode")
         process = subprocess.Popen(["python3", app_path])
     print("App started at pid {}".format(process.pid))
     if not config.testing:
-        pass
-        # GPIO.setmode(GPIO.BOARD)
-        #GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-        # GPIO.add_event_detect(
-        #    7, GPIO.RISING, callback=button_pressed, bouncetime=300)
-        # GPIO.add_event_detect(
-        #    7, GPIO.FALLING, callback=button_released, bouncetime=300)
-    while(True):
-        if config.testing:
+        button = Button(25)
+        button.when_pressed = button_pressed
+        button.when_released = button_released
+        signal.pause()
+    else:
+        while(True):
             line = input("L for long, S for short, D for double").rstrip()
             if line == "L":
                 long_press()
@@ -124,5 +120,3 @@ if __name__ == "__main__":
                 short_press()
             elif line == "D":
                 double_press()
-        else:
-            time.sleep(1)
