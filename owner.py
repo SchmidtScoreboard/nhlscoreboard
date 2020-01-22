@@ -90,9 +90,9 @@ def handler(signum, frame):
 if __name__ == "__main__":
     # First, get a new version
     root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    #repo = git.Repo(root_path)
-    #repo.git.pull()
-    
+    repo = git.Repo(root_path)
+    repo.git.pull()
+
     signal.signal(signal.SIGINT, handler)
     get_settings()
 
@@ -108,12 +108,12 @@ if __name__ == "__main__":
     print("App started at pid {}".format(process.pid))
     if not config.testing:
         pass
-        #GPIO.setmode(GPIO.BOARD)
+        # GPIO.setmode(GPIO.BOARD)
         #GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        #GPIO.add_event_detect(
+        # GPIO.add_event_detect(
         #    7, GPIO.RISING, callback=button_pressed, bouncetime=300)
-        #GPIO.add_event_detect(
+        # GPIO.add_event_detect(
         #    7, GPIO.FALLING, callback=button_released, bouncetime=300)
     while(True):
         if config.testing:
