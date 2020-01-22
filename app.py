@@ -316,7 +316,10 @@ def initScreens():
 
 
 def run_webserver():
-    create_app().run(host='0.0.0.0', port=5005)
+    from waitress import serve
+    serve(create_app(), host="0.0.0.0", port=5005)
+
+    # create_app().run(host='0.0.0.0', port=5005)
 
 
 if __name__ == '__main__':
