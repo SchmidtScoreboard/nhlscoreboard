@@ -323,7 +323,7 @@ if __name__ == '__main__':
     # Set up the matrix options
     print("In app main")
     options = RGBMatrixOptions()
-    options.brightness = 100
+    options.brightness = 30
     options.rows = 32
     options.cols = 64
     options.hardware_mapping = "adafruit-hat"  # TODO use the hack to remove flicker
