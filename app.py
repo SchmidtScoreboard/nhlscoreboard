@@ -305,7 +305,7 @@ def initScreens():
     log.info("Got MLB")
     nhl = NHL(nhl_settings, get_settings()["timezone"])
     log.info("Got NHL")
-    clock = ClockScreen()
+    clock = ClockScreen(get_settings()["timezone"])
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb

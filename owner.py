@@ -83,7 +83,7 @@ def button_released():
 
 def handler(signum, frame):
     print('Signal handler called with signal', signum)
-    subprocess.call(["sudo", "kill", "-9", str(process.pid)])
+    subprocess.call(["kill", "-9", str(process.pid)])
     exit(0)
 
 

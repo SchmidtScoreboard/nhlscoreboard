@@ -8,16 +8,20 @@ import time
 import config
 import datetime
 
+
 class ClockScreen(Screen):
 
-    def __init__(self):
+    def __init__(self, timezone):
         self.width = 64
         self.height = 32
+        self.timezone = timezone
         self.refresh()
 
     def refresh(self):
-        now = datetime.datetime.now()
-        self.current_time = now.strftime("%I:%M %p")
+        utc_time = datetime.datetime.utcnow()
+        local_time = pytz.utc.localize(
+            utc_time, is_dst=None).astimezone(pytz.timezone(self.timezone))
+        self.current_time = local_time.strftime("%I:%M %p")
 
     def get_sleep_time(self):
         return 30
