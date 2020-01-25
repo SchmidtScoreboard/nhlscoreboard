@@ -126,7 +126,7 @@ if __name__ == "__main__":
         process = subprocess.Popen(["python3", app_path])
     print("App started at pid {}".format(process.pid))
     if not config.testing:
-        button = Button(25)
+        button = Button(25, pull_up=False)
         button.when_pressed = button_pressed
         button.when_released = button_released
         signal.pause()
