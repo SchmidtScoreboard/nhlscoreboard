@@ -82,13 +82,12 @@ class ConnectionScreen(SetupScreen):
         self.start_countdown = False
         self.timer = 0
 
-    def begin_countdown(self, supplicant, script):
+    def begin_countdown(self, supplicant):
         self.timer = time.time()
         self.start_countdown = True
         self.restart_message = "3..."
         self.supplicant = supplicant
         self.fired = False
-        self.script = script
 
     def refresh(self):
         if self.start_countdown:
@@ -106,8 +105,7 @@ class ConnectionScreen(SetupScreen):
                 with open(wpa_path, "w+") as wpa_supplicant:
                     wpa_supplicant.write(self.supplicant)
                     self.fired = True
-                    subprocess.call([self.script])
-                    restart_scoreboard()
+                    log.info("Sending signal to setup wifi and restart")
 
             elif time_spent > 2.0:
                 self.restart_message = "3...2...1..."

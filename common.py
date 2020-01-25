@@ -36,13 +36,8 @@ wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), 
         (6, -7), (6, -9), (7, -3), (7, -5), (7, -7), (8, -3), (8, -6), (8, -8), (9, -4), (9, -6), (10, -4), (10, -7), (11, -5), (12, -6)]
 
 
-def restart_scoreboard():
-    if config.testing:
-        log.info("About to reboot, test mode")
-        os.kill(os.getppid(), signal.SIGINT)
-    else:
-        log.info("About to reboot, production mode")
-        os.system('sudo shutdown -r now')
+def send_restart_signal():
+    os.kill(os.getppid(), signal.SIGUSR1)
 
 
 def get_settings():
@@ -146,7 +141,8 @@ class Game:
         self.start_afternoon = "PM" if time.hour >= 12 else "AM"
         self.start_minute = time.minute
         if self.status == GameStatus.PREGAME:
-            self.ordinal = "{}:{:02d} {}".format(self.start_hour, self.start_minute, self.start_afternoon)
+            self.ordinal = "{}:{:02d} {}".format(
+                self.start_hour, self.start_minute, self.start_afternoon)
 
 
 class Screen:

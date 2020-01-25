@@ -131,7 +131,6 @@ def create_app():
                 common_data[SCREEN_ON_KEY] = True
                 draw()
                 content = request.get_json()
-                new_screen = ActiveScreen(content["sport"])
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(content["sport"])
                 # Update the file
                 settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
@@ -157,23 +156,6 @@ def create_app():
                     substituted, hotspot_off)
             return jsonify(settings)
 
-    # This should also happen when the button is pressed and held for ten seconds
-    @app.route('/resetWifi', methods=['POST'])
-    def resetWifi():
-        global common_data
-        global data_lock
-        with data_lock:
-            settings = get_settings()
-            settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
-            settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
-            common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
-            write_settings(settings)
-            subprocess.call([hotspot_on])
-            restart_thread = threading.Timer(5, restart_scoreboard)
-            restart_thread.start()
-            settings[SETUP_STATE_KEY] = SetupState.READY.value
-            return jsonify(settings)
-
     @app.route('/showSync', methods=['POST'])
     def showSync():
         global common_data
@@ -184,8 +166,10 @@ def create_app():
                 interrupt()
                 settings[SETUP_STATE_KEY] = SetupState.SYNC.value
                 settings[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC.value
-                draw()
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC
+                common_data[SCREEN_ON_KEY] = True
+                settings[SCREEN_ON_KEY] = True
+                draw()
                 write_settings(settings)
                 return jsonify(settings)
             elif settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
@@ -193,6 +177,7 @@ def create_app():
                 interrupt()
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
                 common_data[SCREEN_ON_KEY] = True
+                settings[SCREEN_ON_KEY] = True
                 draw()
                 settings[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL.value
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.NHL
@@ -208,7 +193,7 @@ def create_app():
             settings = get_settings()
             log.info("About to reboot")
             common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
-            restart_thread = threading.Timer(5, restart_scoreboard)
+            restart_thread = threading.Timer(5, send_restart_signal)
             restart_thread.start()
             return jsonify(settings)
 

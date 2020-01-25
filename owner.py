@@ -5,6 +5,7 @@ import config
 import git
 import subprocess
 from common import *
+from setup_screens import *
 from files import *
 import signal
 import threading
@@ -14,6 +15,8 @@ try:
     config.testing = False
 except:
     config.testing = True
+    hotspot_on = os.path.join(root_path, "hotspot_on_test.sh")
+    hotspot_off = os.path.join(root_path, "hotspot_off_test.sh")
 log = logging.getLogger(__name__)
 
 is_pressed = False
@@ -31,10 +34,32 @@ DOUBLE_PRESS_DEBOUNCE = 0.6
 process = None
 
 
+def restart_scoreboard():
+    if config.testing:
+        log.info("About to reboot, test mode")
+        os.kill(os.getpid(), signal.SIGINT)
+    else:
+        log.info("About to reboot, production mode")
+        os.system('sudo shutdown -r now')
+
+
+def resetWifi():
+    settings = get_settings()
+    settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
+    settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
+    write_settings(settings)
+    subprocess.call([hotspot_on])
+    restart_scoreboard()
+
+
+def setupWifi():
+    subprocess.call([hotspot_off])
+    restart_scoreboard()
+
+
 def execute_long_press():
     print("Long Press")
-    r = requests.post(url=localAddress + "resetWifi")
-    print(r.status_code)
+    resetWifi()
 
 
 def execute_short_press():
@@ -86,6 +111,7 @@ def button_released():
     if is_pressed:
         is_pressed = False
         now = time.time()
+        release_time = now
         if now - press_time > LONG_PRESS_TIME:
             execute_long_press()
         elif not double_press:
@@ -95,8 +121,13 @@ def button_released():
 
 def handler(signum, frame):
     print('Signal handler called with signal', signum)
-    subprocess.call(["kill", "-9", str(process.pid)])
-    exit(0)
+    if signum == signal.SIGUSR1:
+        pass  # restart
+    elif signum == signal.SIGUSR2:
+        pass  # set wifi
+    else:
+        subprocess.call(["kill", "-9", str(process.pid)])
+        exit(0)
 
 
 if __name__ == "__main__":
@@ -134,8 +165,8 @@ if __name__ == "__main__":
         while(True):
             line = input("L for long, S for short, D for double").rstrip()
             if line == "L":
-                long_press()
+                execute_long_press()
             elif line == "S":
-                short_press()
+                execute_short_press()
             elif line == "D":
-                double_press()
+                execute_double_press()
