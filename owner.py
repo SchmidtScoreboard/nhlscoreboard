@@ -7,6 +7,7 @@ import subprocess
 from common import *
 from files import *
 import signal
+import threading
 import sys
 try:
     from gpiozero import Button
@@ -30,13 +31,13 @@ DOUBLE_PRESS_DEBOUNCE = 0.6
 process = None
 
 
-def long_press():
+def execute_long_press():
     print("Long Press")
     r = requests.post(url=localAddress + "resetWifi")
     print(r.status_code)
 
 
-def short_press():
+def execute_short_press():
     print("Short press")
     settings = get_settings()
     r = requests.post(url=localAddress + "setPower",
@@ -44,14 +45,17 @@ def short_press():
     print(r.status_code)
 
 
-def double_press():
+def execute_double_press():
     print("Double press")
     r = requests.post(url=localAddress + "showSync")
     print(r.status_code)
 
 
 def button_pressed():
-    print("Pressed")
+    global is_pressed
+    global release_time
+    global double_press
+    global press_time
     if not is_pressed:
         is_pressed = True
         now = time.time()
@@ -63,22 +67,30 @@ def button_pressed():
 
 
 def press_helper():
+    global is_pressed
+    global release_time
+    global double_press
+    global press_time
     if double_press:
-        double_press()
+        execute_double_press()
     else:
-        short_press()
+        execute_short_press()
     double_press = False
 
 
 def button_released():
-    print("Released")
+    global is_pressed
+    global release_time
+    global double_press
+    global press_time
     if is_pressed:
         is_pressed = False
         now = time.time()
         if now - press_time > LONG_PRESS_TIME:
-            long_press()
+            execute_long_press()
         elif not double_press:
-            threading.Timer(DOUBLE_PRESS_DEBOUNCE, short_press_helper)
+            t = threading.Timer(DOUBLE_PRESS_DEBOUNCE, press_helper)
+            t.start()
 
 
 def handler(signum, frame):
