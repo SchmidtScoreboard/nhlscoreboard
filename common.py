@@ -10,6 +10,7 @@ import socket
 import version
 import signal
 import pytz
+import subprocess
 from dateutil.parser import *
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
@@ -17,6 +18,8 @@ Color = namedtuple('Color', 'red green blue')
 ACTIVE_SCREEN_KEY = "active_screen"
 SETUP_STATE_KEY = "setup_state"
 SCREENS_KEY = "screens"
+RESTART_KEY = "restart"
+REBOOT_MESSAGE_KEY = "reboot_message"
 MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
 VERSION_KEY = "version"
@@ -37,7 +40,10 @@ wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), 
 
 
 def send_restart_signal():
-    os.kill(os.getppid(), signal.SIGUSR1)
+    subprocess.call(["sudo", "kill", "-10", str(os.getppid())])
+
+def send_wifi_signal():
+    subprocess.call(["sudo", "kill", "-12", str(os.getppid())])
 
 
 def get_settings():
@@ -297,8 +303,9 @@ class Renderer:
             height = self.height + 6
             image, draw, self.text_start = self.get_scrolling_text(
                 self.text_start, image, scrollingText, (255, 0, 0), (0, 0, 0))
-        image, draw = self.draw_text(
-            title, centered=True, image=image, height=height, color=(255, 0, 0))
+        if title is not None:
+            image, draw = self.draw_text(
+                title, centered=True, image=image, height=height, color=(255, 0, 0))
         return image
 
     def draw_text(self, text, centered=False, x=None, y=None, width=None, height=None, color=None, image=None, font_filename=small_font):

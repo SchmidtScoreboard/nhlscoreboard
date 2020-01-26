@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from common import *
 from files import *
 import subprocess
+import threading
 import time
 import config
 from enum import Enum
@@ -80,37 +81,20 @@ class ConnectionScreen(SetupScreen):
     def __init__(self):
         super().__init__("Send your home wifi details using the Scoreboard app")
         self.start_countdown = False
-        self.timer = 0
 
     def begin_countdown(self, supplicant):
-        self.timer = time.time()
         self.start_countdown = True
-        self.restart_message = "3..."
-        self.supplicant = supplicant
-        self.fired = False
-
-    def refresh(self):
-        if self.start_countdown:
-            time_spent = time.time() - self.timer
-            if self.fired:
-                return
-            elif time_spent > 3.0 and not self.fired:
-                # time to restart
-                settings = get_settings()
-                settings["setup_state"] = SetupState.SYNC.value
-                settings["active_screen"] = ActiveScreen.SYNC.value
-                # Don't change the loaded screen because we are restarting
-                write_settings(settings)
-                log.info(settings)
-                with open(wpa_path, "w+") as wpa_supplicant:
-                    wpa_supplicant.write(self.supplicant)
-                    self.fired = True
-                    log.info("Sending signal to setup wifi and restart")
-
-            elif time_spent > 2.0:
-                self.restart_message = "3...2...1..."
-            elif time_spent > 1.0:
-                self.restart_message = "3...2..."
+        settings = get_settings()
+        settings["setup_state"] = SetupState.SYNC.value
+        settings["active_screen"] = ActiveScreen.SYNC.value
+        # Don't change the loaded screen because we are restarting
+        write_settings(settings)
+        log.info(settings)
+        with open(wpa_path, "w+") as wpa_supplicant:
+            wpa_supplicant.write(supplicant)
+            log.info("Sending signal to setup wifi and restart")
+            restart_thread = threading.Timer(5, send_wifi_signal)
+            restart_thread.start()
 
     def get_image(self):
         image = Image.new("RGB", (self.width, self.height))
@@ -125,8 +109,8 @@ class ConnectionScreen(SetupScreen):
         else:
             renderer.draw_text("Got wifi,", x=4, y=10,
                                color=(255, 255, 255), image=image)
-            renderer.draw_text("restarting in", x=4, y=17,
+            renderer.draw_text("restarting...", x=4, y=17,
                                color=(255, 255, 255), image=image)
-            renderer.draw_text(self.restart_message, x=4,
-                               y=24, color=(255, 255, 255), image=image)
+            renderer.draw_text("Please wait", x=4, y=24,
+                               color=(255, 255, 255), image=image)
         return image

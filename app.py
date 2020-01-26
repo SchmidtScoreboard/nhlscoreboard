@@ -153,7 +153,10 @@ def create_app():
                 substituted = wpa_content.substitute(
                     ssid=content['ssid'], psk=content['psk'])
                 common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS].begin_countdown(
-                    substituted, hotspot_off)
+                    substituted)
+                interrupt()
+                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
+                draw()
             return jsonify(settings)
 
     @app.route('/showSync', methods=['POST'])
@@ -189,12 +192,20 @@ def create_app():
     @app.route('/reboot', methods=['POST'])
     def reboot():
         global data_lock
+        global common_data
         with data_lock:
-            settings = get_settings()
             log.info("About to reboot")
+            interrupt()
+            settings = get_settings()
             common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REBOOT
-            restart_thread = threading.Timer(5, send_restart_signal)
-            restart_thread.start()
+            draw()
+            content = request.get_json()
+            if content is None or content.get(RESTART_KEY, True):
+                send_restart_signal()
+            if content is not None and content.get(REBOOT_MESSAGE_KEY) is not None:
+                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message(content.get(REBOOT_MESSAGE_KEY))
+            else:
+                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message("Rebooting...")
             return jsonify(settings)
 
     # Used on Sync screen. When the app parses the IP code, it will send this API request
@@ -255,7 +266,7 @@ def create_app():
             # Got empty string, which means it failed to connect. Display something funky and make the user reset
             log.error("Failed to connect to wifi")
             common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen(
-                "Failed to connect to wifi")
+                "Could not connect to WiFi", ["Reset your", "Scoreboard"])
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
         else:
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC.value
@@ -314,7 +325,7 @@ if __name__ == '__main__':
     options.brightness = 30
     options.rows = 32
     options.cols = 64
-    options.hardware_mapping = "adafruit-hat"  # TODO use the hack to remove flicker
+    options.hardware_mapping = "adafruit-hat-pwm"
 
     with data_lock:
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
@@ -327,7 +338,7 @@ if __name__ == '__main__':
         common_data[SCREENS_KEY][ActiveScreen.HOTSPOT] = WifiHotspot()
         common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS] = ConnectionScreen()
         common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen(
-            "Dummy Error Message")
+            "Dummy Error Message", ["Error"])
 
     if not config.testing:
         run_webserver()

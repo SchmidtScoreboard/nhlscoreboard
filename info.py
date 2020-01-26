@@ -15,6 +15,9 @@ class InfoScreen(Screen):
     def get_sleep_time(self):
         return 2
 
+    def set_message(self, new_message):
+        self.text = new_message
+
     def get_image(self):
         renderer = Renderer(64, 32)
         image, draw = renderer.draw_info(self.text)

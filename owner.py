@@ -27,7 +27,7 @@ double_press = False
 localAddress = "http://127.0.0.1:5005/"
 
 # TODO update these times
-LONG_PRESS_TIME = 10
+LONG_PRESS_TIME = 5
 DOUBLE_PRESS_WINDOW = 0.5
 DOUBLE_PRESS_DEBOUNCE = 0.6
 
@@ -43,23 +43,25 @@ def restart_scoreboard():
         os.system('sudo shutdown -r now')
 
 
-def resetWifi():
+def reset_wifi():
     settings = get_settings()
     settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
     settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
     write_settings(settings)
+    r = requests.post(url=localAddress + "reboot", json={RESTART_KEY: False, REBOOT_MESSAGE_KEY: "Setting up..."})
+    print(r.status_code)
     subprocess.call([hotspot_on])
     restart_scoreboard()
 
 
-def setupWifi():
+def setup_wifi():
     subprocess.call([hotspot_off])
     restart_scoreboard()
 
 
 def execute_long_press():
     print("Long Press")
-    resetWifi()
+    reset_wifi()
 
 
 def execute_short_press():
@@ -90,6 +92,10 @@ def button_pressed():
             double_press = False
         press_time = now
 
+def button_held():
+    global is_pressed
+    is_pressed = False #Cancel the pending button release
+    execute_long_press()
 
 def press_helper():
     global is_pressed
@@ -112,26 +118,27 @@ def button_released():
         is_pressed = False
         now = time.time()
         release_time = now
-        if now - press_time > LONG_PRESS_TIME:
-            execute_long_press()
-        elif not double_press:
+        if not double_press:
             t = threading.Timer(DOUBLE_PRESS_DEBOUNCE, press_helper)
             t.start()
 
 
-def handler(signum, frame):
-    print('Signal handler called with signal', signum)
-    if signum == signal.SIGUSR1:
-        pass  # restart
-    elif signum == signal.SIGUSR2:
-        pass  # set wifi
-    else:
-        subprocess.call(["kill", "-9", str(process.pid)])
-        exit(0)
+def int_handler(signum, frame):
+    print('Int handler called')
+    subprocess.call(["kill", "-9", str(process.pid)])
+    exit(0)
+def usr1_handler(signum, frame):
+    print("SIGUSR1 called")
+    restart_scoreboard()
+
+def usr2_handler(signum, frame):
+    print("SIGUSR2 called")
+    setup_wifi()
 
 
 if __name__ == "__main__":
     # First, get a new version
+    print("Running at pid {}".format(os.getpid()))
     root_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     try:
         repo = git.Repo(root_path)
@@ -143,23 +150,31 @@ if __name__ == "__main__":
         subprocess.call([sys.executable, "-m", "pip",
                          "install", "-r", requirements_path])
 
-    signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGINT, int_handler)
+    signal.signal(signal.SIGUSR1, usr1_handler)
+    signal.signal(signal.SIGUSR2, usr2_handler)
     get_settings()
 
     app_path = os.path.join(root_path, "app.py")
     print("Starting app at " + app_path)
     if not config.testing:
         print("Starting in production mode")
+        #subprocess.call(["touch", settings_path])
+        #subprocess.call(["touch", wpa_path])
+        subprocess.call(["chmod", "777", root_path])
         subprocess.call(["chmod", "777", settings_path])
+        subprocess.call(["chmod", "777", wpa_path])
+        subprocess.call(["chmod", "777", settings_template_path])
         process = subprocess.Popen(["python3", app_path])
     else:
         print("Starting in testing mode")
         process = subprocess.Popen(["python3", app_path])
     print("App started at pid {}".format(process.pid))
     if not config.testing:
-        button = Button(25, pull_up=False)
+        button = Button(25, pull_up=False, hold_time=5)
         button.when_pressed = button_pressed
         button.when_released = button_released
+        button.when_held = button_held
         signal.pause()
     else:
         while(True):
