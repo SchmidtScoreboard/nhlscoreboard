@@ -42,6 +42,7 @@ wifi = [(0, -6), (1, -5), (2, -4), (2, -7), (3, -4), (3, -6), (4, -3), (4, -6), 
 def send_restart_signal():
     subprocess.call(["sudo", "kill", "-10", str(os.getppid())])
 
+
 def send_wifi_signal():
     subprocess.call(["sudo", "kill", "-12", str(os.getppid())])
 
@@ -257,14 +258,18 @@ class Renderer:
         draw.rectangle(((0, 0), (2, 9)), fill=game.away.secondary_color)
         draw.text((5, 1), game.away.display_name,
                   font=team_font, fill=game.away.secondary_color)
-        draw.text((57, 1), str(game.away_score), font=team_font,
+        away_score_message = str(game.away_score)
+        w, _ = team_font.getsize(away_score_message)
+        draw.text((61-w, 1), str(game.away_score), font=team_font,
                   fill=game.away.secondary_color)
 
         draw.rectangle(((0, 10), (64, 19)), fill=game.home.primary_color)
         draw.rectangle(((0, 10), (2, 19)), fill=game.home.secondary_color)
         draw.text((5, 11), game.home.display_name,
                   font=team_font, fill=game.home.secondary_color)
-        draw.text((57, 11), str(game.home_score),
+        home_score_message = str(game.home_score)
+        w, _ = team_font.getsize(home_score_message)
+        draw.text((61 - w, 11), str(game.home_score),
                   font=team_font, fill=game.home.secondary_color)
 
         return (image, draw)

@@ -203,9 +203,11 @@ def create_app():
             if content is None or content.get(RESTART_KEY, True):
                 send_restart_signal()
             if content is not None and content.get(REBOOT_MESSAGE_KEY) is not None:
-                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message(content.get(REBOOT_MESSAGE_KEY))
+                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message(
+                    content.get(REBOOT_MESSAGE_KEY))
             else:
-                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message("Rebooting...")
+                common_data[SCREENS_KEY][ActiveScreen.REBOOT].set_message(
+                    "Rebooting...")
             return jsonify(settings)
 
     # Used on Sync screen. When the app parses the IP code, it will send this API request
@@ -330,7 +332,7 @@ if __name__ == '__main__':
     with data_lock:
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
         common_data[SCREENS_KEY] = {
-            ActiveScreen.REFRESH: InfoScreen("Refreshing...")}
+            ActiveScreen.REFRESH: InfoScreen("Loading...")}
         common_data[SCREENS_KEY][ActiveScreen.REBOOT] = InfoScreen(
             "Rebooting...")
         common_data[MATRIX_KEY] = RGBMatrix(options=options)

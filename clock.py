@@ -28,7 +28,6 @@ class ClockScreen(Screen):
 
     def get_image(self):
         image = Image.new("RGB", (self.width, self.height))
-        draw = ImageDraw.Draw(image)
         renderer = Renderer(self.width, self.height)
         renderer.draw_text(self.current_time,
                            color=(255, 255, 255), image=image, centered=True, font_filename=biggest_font)
