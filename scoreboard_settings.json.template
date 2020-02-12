@@ -6,16 +6,16 @@
             "id": 0,
             "always_rotate": true,
             "focus_teams": [],
-            "name": "NHL",
-            "subtitle": "View scores from NHL games"
+            "name": "Hockey ",
+            "subtitle": "View scores from professional hockey"
         },
         {
             "rotation_time": 10,
             "id": 1,
             "always_rotate": false,
             "focus_teams": [],
-            "name": "MLB",
-            "subtitle": "View scores from MLB games"
+            "name": "Baseball",
+            "subtitle": "View scores from professional baseball"
         },
         {
             "rotation_time": 10,

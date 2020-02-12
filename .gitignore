@@ -7,8 +7,7 @@ __pycache__/
 # C extensions
 *.so
 
-# Distribution / packaging
-.Python
+# Distribution / packaging .Python
 build/
 develop-eggs/
 dist/
@@ -110,3 +109,4 @@ out.png
 rpi-rgb-led-mat*
 wpa_supplicant.conf
 scoreboard_settings.json
+secrets.txt

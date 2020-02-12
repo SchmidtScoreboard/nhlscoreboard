@@ -11,6 +11,7 @@ import version
 import signal
 import pytz
 import subprocess
+import requests
 from dateutil.parser import *
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
@@ -24,7 +25,7 @@ MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
 VERSION_KEY = "version"
 
-AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Beta/'
+AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/'
 # AWS_URL = 'http://127.0.0.1:1337/'
 
 
@@ -45,6 +46,16 @@ def send_restart_signal():
 
 def send_wifi_signal():
     subprocess.call(["sudo", "kill", "-12", str(os.getppid())])
+
+
+def get_api_key():
+    try:
+        with open(secrets_path) as f:
+            lines = f.readlines()
+            return lines[0]
+    except:
+        log.error("Failed to read secret")
+        return None
 
 
 def get_settings():
@@ -176,12 +187,13 @@ class Screen:
 
 
 class League(Screen):
-    def __init__(self, settings, timezone):
+    def __init__(self, settings, api_key, timezone):
         super().__init__()
         self.last_full_refresh_time = 0
         self.active_index = 0
         self.last_reset = 0
         self.settings = settings
+        self.api_key = api_key
         self.timezone = timezone
         self.rotation_time = settings.get("rotation_time", 10)
         self.focus_teams = settings.get("focus_teams", [])
@@ -239,6 +251,24 @@ class League(Screen):
         self.last_full_refresh_time = 0
         self.error_title = error_title
         self.error_message = error_message
+
+    def get_games(self, endpoint, query):
+        try:
+            response = requests.get(
+                url=AWS_URL + endpoint, json={'query': query}, headers={'x-api-key': self.api_key})
+            if response.status_code == 403:
+                log.error("403 error, failed to authenticate")
+                error_title = "Error"
+                error_message = "Authentication failed, please contact support"
+                self.handle_error(error_title, error_message)
+                return None
+            return response.json()['data']
+        except Exception as e:
+            log.error("Error: " + str(e))
+            error_title = "Disconnected"
+            error_message = "Use the Scoreboard app to get reconnected"
+            self.handle_error(error_title, error_message)
+        return None
 
 
 class Renderer:

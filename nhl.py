@@ -52,29 +52,22 @@ class NHLGame(Game):
 
 
 class NHL(League):
-    def __init__(self, settings, timezone):
-        super().__init__(settings, timezone)
+    def __init__(self, settings, api_key, timezone):
+        super().__init__(settings, api_key, timezone)
         self.renderer = NHLRenderer(64, 32)
 
     def reset(self):
         super().reset()
-        # try:
-        response = requests.get(
-            url=AWS_URL + "nhl", json={'query': NHL_QUERY}).json()
-        data = response['data']
-        self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
-                              game['away_players'], game['home_players']) for game in data['games']]
-        # except Exception as e:
-        #     log.error("Error: " + str(e))
-        #     error_title = "Disconnected"
-        #     error_message = "Use the Scoreboard app to get reconnected"
-        #     self.handle_error(error_title, error_message)
+        data = self.get_games("nhl", NHL_QUERY)
+        if data is not None:
+            self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
+                                  game['away_players'], game['home_players']) for game in data['games']]
 
     def get_image(self):
-        if self.active_index == -1:
-            return self.renderer.draw_info("No games :(")[0]
-        elif self.error:
+        if self.error:
             return self.renderer.draw_error(self.error_title, self.error_message)
+        elif self.active_index == -1:
+            return self.renderer.draw_info("No games :(")[0]
         else:
             game = self.games[self.active_index]
             return self.renderer.render(game)

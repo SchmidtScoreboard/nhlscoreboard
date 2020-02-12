@@ -298,12 +298,17 @@ def initScreens():
         print("Something went wrong while parsing screen settings")
     print(nhl_settings)
     print(mlb_settings)
-    log.info("Refreshing Sports")
-    mlb = MLB(mlb_settings, get_settings()["timezone"])
-    log.info("Got MLB")
-    nhl = NHL(nhl_settings, get_settings()["timezone"])
-    log.info("Got NHL")
-    clock = ClockScreen(get_settings()["timezone"])
+    api_key = get_api_key()
+    if api_key is None:
+        common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen(
+            "No API Key found", ["Please", "contact", "support"])
+    else:
+        log.info("Refreshing Sports")
+        mlb = MLB(mlb_settings, api_key, get_settings()["timezone"])
+        log.info("Got MLB")
+        nhl = NHL(nhl_settings, api_key, get_settings()["timezone"])
+        log.info("Got NHL")
+        clock = ClockScreen(get_settings()["timezone"])
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
