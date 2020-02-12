@@ -189,7 +189,6 @@ class Screen:
 class League(Screen):
     def __init__(self, settings, api_key, timezone):
         super().__init__()
-        self.last_full_refresh_time = 0
         self.active_index = 0
         self.last_reset = 0
         self.settings = settings
@@ -248,11 +247,11 @@ class League(Screen):
 
     def handle_error(self, error_title, error_message):
         self.error = True
-        self.last_full_refresh_time = 0
         self.error_title = error_title
         self.error_message = error_message
 
     def get_games(self, endpoint, query):
+        self.error = False  # First, clear any errors
         try:
             response = requests.get(
                 url=AWS_URL + endpoint, json={'query': query}, headers={'x-api-key': self.api_key})
