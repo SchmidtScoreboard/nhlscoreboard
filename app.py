@@ -299,22 +299,20 @@ def initScreens():
     print(nhl_settings)
     print(mlb_settings)
     api_key = get_api_key()
-    if api_key is None:
-        common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen(
-            "No API Key found", ["Please", "contact", "support"])
-    else:
-        log.info("Refreshing Sports")
-        mlb = MLB(mlb_settings, api_key, get_settings()["timezone"])
-        log.info("Got MLB")
-        nhl = NHL(nhl_settings, api_key, get_settings()["timezone"])
-        log.info("Got NHL")
-        clock = ClockScreen(get_settings()["timezone"])
+    mlb = MLB(mlb_settings, api_key, get_settings()["timezone"])
+    nhl = NHL(nhl_settings, api_key, get_settings()["timezone"])
+    clock = ClockScreen(get_settings()["timezone"])
     with data_lock:
         common_data[SCREENS_KEY][ActiveScreen.NHL] = nhl
         common_data[SCREENS_KEY][ActiveScreen.MLB] = mlb
         common_data[SCREENS_KEY][ActiveScreen.CLOCK] = clock
-        common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
-            get_settings()[ACTIVE_SCREEN_KEY])
+        if api_key is None:
+            common_data[SCREENS_KEY][ActiveScreen.ERROR] = ErrorScreen(
+                "No API Key found", ["Please", "contact", "support"])
+            common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR
+        else:
+            common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
+                get_settings()[ACTIVE_SCREEN_KEY])
     log.info("Done initScreens")
 
 

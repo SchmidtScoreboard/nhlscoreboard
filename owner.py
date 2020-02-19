@@ -48,7 +48,8 @@ def reset_wifi():
     settings[ACTIVE_SCREEN_KEY] = ActiveScreen.HOTSPOT.value
     settings[SETUP_STATE_KEY] = SetupState.HOTSPOT.value
     write_settings(settings)
-    r = requests.post(url=localAddress + "reboot", json={RESTART_KEY: False, REBOOT_MESSAGE_KEY: "Setting up..."})
+    r = requests.post(url=localAddress + "reboot",
+                      json={RESTART_KEY: False, REBOOT_MESSAGE_KEY: "Setting up..."})
     print(r.status_code)
     subprocess.call([hotspot_on])
     restart_scoreboard()
@@ -92,10 +93,12 @@ def button_pressed():
             double_press = False
         press_time = now
 
+
 def button_held():
     global is_pressed
-    is_pressed = False #Cancel the pending button release
+    is_pressed = False  # Cancel the pending button release
     execute_long_press()
+
 
 def press_helper():
     global is_pressed
@@ -127,9 +130,12 @@ def int_handler(signum, frame):
     print('Int handler called')
     subprocess.call(["kill", "-9", str(process.pid)])
     exit(0)
+
+
 def usr1_handler(signum, frame):
     print("SIGUSR1 called")
     restart_scoreboard()
+
 
 def usr2_handler(signum, frame):
     print("SIGUSR2 called")
@@ -159,10 +165,12 @@ if __name__ == "__main__":
     print("Starting app at " + app_path)
     if not config.testing:
         print("Starting in production mode")
-        #subprocess.call(["touch", settings_path])
-        #subprocess.call(["touch", wpa_path])
+        subprocess.call(["touch", settings_path])
+        subprocess.call(["touch", wpa_path])
+        subprocess.call(["touch", secrets_path])
         subprocess.call(["chmod", "777", root_path])
         subprocess.call(["chmod", "777", settings_path])
+        subprocess.call(["chmod", "777", secrets_path])
         subprocess.call(["chmod", "777", wpa_path])
         subprocess.call(["chmod", "777", settings_template_path])
         process = subprocess.Popen(["python3", app_path])

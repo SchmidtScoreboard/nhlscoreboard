@@ -52,7 +52,7 @@ def get_api_key():
     try:
         with open(secrets_path) as f:
             lines = f.readlines()
-            return lines[0]
+            return lines[0].strip()
     except:
         log.error("Failed to read secret")
         return None
