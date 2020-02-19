@@ -12,6 +12,8 @@ import signal
 import pytz
 import subprocess
 import requests
+import uuid
+import re
 from dateutil.parser import *
 log = logging.getLogger(__name__)
 Color = namedtuple('Color', 'red green blue')
@@ -24,6 +26,7 @@ REBOOT_MESSAGE_KEY = "reboot_message"
 MATRIX_KEY = "matrix"
 SCREEN_ON_KEY = "screen_on"
 VERSION_KEY = "version"
+MAC_ADDRESS_KEY = "mac_address"
 
 AWS_URL = 'https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/'
 # AWS_URL = 'http://127.0.0.1:1337/'
@@ -82,6 +85,10 @@ def get_ip_address():
         return s.getsockname()[0]
     except:
         return ""
+
+
+def get_mac_address():
+    return ':'.join(re.findall('..', '%012x' % uuid.getnode()))
 
 
 class ActiveScreen(Enum):

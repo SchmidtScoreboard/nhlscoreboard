@@ -272,7 +272,7 @@ def create_app():
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.ERROR.value
         else:
             settings[ACTIVE_SCREEN_KEY] = ActiveScreen.SYNC.value
-
+    settings[MAC_ADDRESS_KEY] = get_mac_address()
     write_settings(settings)
 
     draw()  # Draw the refresh screen
