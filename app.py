@@ -71,6 +71,10 @@ def create_app():
         global common_data
         global render_thread
         draw_image()
+        try:
+            render_thread.cancel()
+        except Exception as e:
+            pass  # Do nothing, there is no thread to cancel
         render_thread = threading.Timer(
             common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].get_sleep_time(), draw, ())
 
@@ -127,18 +131,22 @@ def create_app():
             if settings[SETUP_STATE_KEY] == SetupState.READY.value or settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
                 settings[SETUP_STATE_KEY] = SetupState.READY.value
                 interrupt()
-                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
-                common_data[SCREEN_ON_KEY] = True
-                draw()
                 content = request.get_json()
-                common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(content["sport"])
-                common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]
-                                         ].is_initialized = False
+                target_screen = ActiveScreen(content["sport"])
+                if common_data[SCREENS_KEY][target_screen].is_stale():
+                    print("Drawing refresh screen!")
+                    common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
+                    common_data[SCREEN_ON_KEY] = True
+                    draw()
+                common_data[ACTIVE_SCREEN_KEY] = target_screen
+
+                common_data[SCREENS_KEY][target_screen].is_initialized = False
+
+                draw()
                 # Update the file
                 settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
-                draw()
             else:
                 log.error("Cannot set sport, scoreboard is not ready")
         resp = jsonify(settings)

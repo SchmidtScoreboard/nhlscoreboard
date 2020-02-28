@@ -190,6 +190,9 @@ class Screen:
     def get_sleep_time(self):
         return 10
 
+    def is_stale(self):
+        return False
+
     def get_refresh_time(self):
         return 60
 
@@ -212,8 +215,9 @@ class League(Screen):
         pass
 
     def refresh(self):
+        refresh_thread = None
         with self.league_mutex:
-            if (time.time() - self.last_reset) > self.get_refresh_time():
+            if self.is_stale():
                 # if it's been more than X seconds since the last refresh, refresh all games
                 log.info("Performing refresh")
                 self.last_reset = time.time()
@@ -221,7 +225,7 @@ class League(Screen):
                 refresh_thread = threading.Thread(target=self.reset)
                 refresh_thread.start()
 
-        if not self.is_initialized:
+        if not self.is_initialized and refresh_thread is not None:
             refresh_thread.join()
 
         with self.league_mutex:
@@ -286,6 +290,9 @@ class League(Screen):
             error_message = "Use the Scoreboard app to get reconnected"
             self.handle_error(error_title, error_message)
         return None
+
+    def is_stale(self):
+        return (time.time() - self.last_reset) > self.get_refresh_time()
 
 
 class Renderer:
