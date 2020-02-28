@@ -213,7 +213,12 @@ class League(Screen):
             # if it's been more than X seconds since the last refresh, refresh all games
             log.info("Performing refresh")
             self.last_reset = time.time()
-            self.reset()
+            self.error = False  # First, clear any errors
+            try:
+                self.reset()
+            except Exception as e:
+                self.handle_error(
+                    "Internal Error", "Something went wrong while fetching data. Please report to support!")
 
         # Regardless, move the active game up one, unless a favorite team is playing
         if len(self.games) == 0:

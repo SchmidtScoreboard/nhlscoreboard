@@ -58,6 +58,7 @@ class NHL(League):
 
     def reset(self):
         super().reset()
+        self.games = []
         data = self.get_games("nhl", NHL_QUERY)
         if data is not None:
             self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
