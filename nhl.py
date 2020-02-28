@@ -57,12 +57,15 @@ class NHL(League):
         self.renderer = NHLRenderer(64, 32)
 
     def reset(self):
-        super().reset()
-        self.games = []
         data = self.get_games("nhl", NHL_QUERY)
-        if data is not None:
-            self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
-                                  game['away_players'], game['home_players']) for game in data['games']]
+        with self.league_mutex:
+            try:
+                if data is not None:
+                    self.games = [NHLGame(self.timezone, game['common'], game['away_powerplay'], game['home_powerplay'],
+                                          game['away_players'], game['home_players']) for game in data['games']]
+            except Exception as e:
+                self.handle_error(
+                    "Internal Error", "Something went wrong while fetching data. Please report to support!")
 
     def get_image(self):
         if self.error:

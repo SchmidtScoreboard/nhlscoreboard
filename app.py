@@ -62,7 +62,7 @@ def create_app():
                 common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].refresh()
                 image = common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].get_image(
                 )
-                common_data[MATRIX_KEY].Clear()
+                # common_data[MATRIX_KEY].Clear()
                 common_data[MATRIX_KEY].SetImage(image.convert("RGB"))
             else:
                 common_data[MATRIX_KEY].Clear()
@@ -132,10 +132,13 @@ def create_app():
                 draw()
                 content = request.get_json()
                 common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(content["sport"])
+                common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]
+                                         ].is_initialized = False
                 # Update the file
                 settings[ACTIVE_SCREEN_KEY] = common_data[ACTIVE_SCREEN_KEY].value
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
+                draw()
             else:
                 log.error("Cannot set sport, scoreboard is not ready")
         resp = jsonify(settings)

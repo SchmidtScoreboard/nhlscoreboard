@@ -58,12 +58,15 @@ class MLB(League):
         self.renderer = MLBRenderer(64, 32)
 
     def reset(self):
-        super().reset()
-        self.games = []
         data = self.get_games("mlb", MLB_QUERY)
-        if data is not None:
-            self.games = [MLBGame(self.timezone, game['common'], game['outs'], game['balls'], game['strikes'],
-                                  game['inning'], game['is_inning_top']) for game in data['games']]
+        with self.league_mutex:
+            try:
+                if data is not None:
+                    self.games = [MLBGame(self.timezone, game['common'], game['outs'], game['balls'], game['strikes'],
+                                          game['inning'], game['is_inning_top']) for game in data['games']]
+            except Exception as e:
+                self.handle_error(
+                    "Internal Error", "Something went wrong while fetching data. Please report to support!")
 
     def get_image(self):
         if self.error:

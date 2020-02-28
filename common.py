@@ -10,6 +10,7 @@ import socket
 import version
 import signal
 import pytz
+import threading
 import subprocess
 import requests
 import uuid
@@ -204,29 +205,34 @@ class League(Screen):
         self.rotation_time = settings.get("rotation_time", 10)
         self.focus_teams = settings.get("focus_teams", [])
         self.games = []
+        self.league_mutex = threading.RLock()
+        self.is_initialized = False
 
     def reset(self):
         pass
 
     def refresh(self):
-        if (time.time() - self.last_reset) > self.get_refresh_time():
-            # if it's been more than X seconds since the last refresh, refresh all games
-            log.info("Performing refresh")
-            self.last_reset = time.time()
-            self.error = False  # First, clear any errors
-            try:
-                self.reset()
-            except Exception as e:
-                self.handle_error(
-                    "Internal Error", "Something went wrong while fetching data. Please report to support!")
+        with self.league_mutex:
+            if (time.time() - self.last_reset) > self.get_refresh_time():
+                # if it's been more than X seconds since the last refresh, refresh all games
+                log.info("Performing refresh")
+                self.last_reset = time.time()
+                self.error = False  # First, clear any errors
+                refresh_thread = threading.Thread(target=self.reset)
+                refresh_thread.start()
 
-        # Regardless, move the active game up one, unless a favorite team is playing
-        if len(self.games) == 0:
-            self.active_index = -1
-        elif self.favorite_teams_playing() is not None:
-            self.active_index = self.favorite_teams_playing()
-        else:
-            self.active_index = (self.active_index + 1) % len(self.games)
+        if not self.is_initialized:
+            refresh_thread.join()
+
+        with self.league_mutex:
+            self.is_initialized = True
+            # Regardless, move the active game up one, unless a favorite team is playing
+            if len(self.games) == 0:
+                self.active_index = -1
+            elif self.favorite_teams_playing() is not None:
+                self.active_index = self.favorite_teams_playing()
+            else:
+                self.active_index = (self.active_index + 1) % len(self.games)
 
     def get_sleep_time(self):
         if self.error:
