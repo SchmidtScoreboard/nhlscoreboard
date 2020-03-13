@@ -51,6 +51,7 @@ def reset_wifi():
     r = requests.post(url=localAddress + "reboot",
                       json={RESTART_KEY: False, REBOOT_MESSAGE_KEY: "Setting up..."})
     print(r.status_code)
+    subprocess.call(["rm", settings_path])
     subprocess.call([hotspot_on])
     restart_scoreboard()
 
