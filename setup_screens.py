@@ -102,9 +102,11 @@ class ConnectionScreen(SetupScreen):
         image, draw, self.text_start = renderer.get_scrolling_text(
             self.text_start, image, self.text)
         if not self.start_countdown:
-            renderer.draw_text("Waiting on", x=4, y=10,
+            renderer.draw_text("Use app to", x=4, y=10,
                                color=(255, 255, 255), image=image)
-            renderer.draw_text("wifi...", x=4, y=17,
+            renderer.draw_text("send wifi", x=4, y=17,
+                               color=(255, 255, 255), image=image)
+            renderer.draw_text("and password", x=4, y=24,
                                color=(255, 255, 255), image=image)
         else:
             renderer.draw_text("Got wifi,", x=4, y=10,
