@@ -21,7 +21,7 @@ class ClockScreen(Screen):
         utc_time = datetime.datetime.utcnow()
         local_time = pytz.utc.localize(
             utc_time, is_dst=None).astimezone(pytz.timezone(self.timezone))
-        self.current_time = local_time.strftime("%I:%M %p")
+        self.current_time = local_time.strftime("%-I:%M %p")
 
     def get_sleep_time(self):
         return 30
