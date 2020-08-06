@@ -114,7 +114,17 @@ def create_app():
                 interrupt()
                 content = request.get_json()
                 common_data[SCREEN_ON_KEY] = content[SCREEN_ON_KEY]
-                draw_image()
+                current_screen = common_data[ACTIVE_SCREEN_KEY]
+                if common_data[SCREEN_ON_KEY] and common_data[SCREENS_KEY][current_screen].is_stale():
+                    print("Drawing refresh screen!")
+                    common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
+                    draw()
+                common_data[ACTIVE_SCREEN_KEY] = current_screen
+
+                common_data[SCREENS_KEY][current_screen].is_initialized = False
+
+                draw()
+                # Update the settings file
                 settings[SCREEN_ON_KEY] = common_data[SCREEN_ON_KEY]
                 write_settings(settings)
             else:

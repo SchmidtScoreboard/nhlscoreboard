@@ -283,6 +283,7 @@ class League(Screen):
                 error_message = "Authentication failed, please contact support"
                 self.handle_error(error_title, error_message)
                 return None
+            print(response.json())
             return response.json()['data']
         except Exception as e:
             log.error("Error: " + str(e))
