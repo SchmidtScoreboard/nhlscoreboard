@@ -63,7 +63,8 @@ def create_app():
                 image = common_data[SCREENS_KEY][common_data[ACTIVE_SCREEN_KEY]].get_image(
                 )
                 # common_data[MATRIX_KEY].Clear()
-                common_data[MATRIX_KEY].SetImage(image.convert("RGB"))
+                common_data[MATRIX_KEY].SetImage(
+                    image.convert("RGB"), unsafe=False)
             else:
                 common_data[MATRIX_KEY].Clear()
 
