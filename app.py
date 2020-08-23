@@ -353,6 +353,7 @@ if __name__ == '__main__':
     options.rows = 32
     options.cols = 64
     options.hardware_mapping = "adafruit-hat-pwm"
+    options.gpio_slowdown = 4
 
     with data_lock:
         common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
