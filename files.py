@@ -6,6 +6,7 @@ secrets_path = os.path.join(root_path, "secrets.txt")
 requirements_path = os.path.join(root_path, "requirements.txt")
 settings_template_path = os.path.join(
     root_path, "scoreboard_settings.json.template")
+log_path = os.path.join(root_path, "../scoreboard_log")
 wpa_template = os.path.join(root_path, "wpa_supplicant.conf.template")
 wpa_path = os.path.join(root_path, "wpa_supplicant.conf")
 hotspot_on = os.path.join(root_path, "hotspot_on.sh")

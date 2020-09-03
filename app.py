@@ -28,8 +28,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     handlers=[
-                        logging.FileHandler(os.path.join(
-                            root_path, "../scoreboard_log"), "w+"),
+                        logging.FileHandler(log_path, "a"),
                         logging.StreamHandler(sys.stdout)
                     ])
 log = logging.getLogger(__name__)
@@ -179,6 +178,7 @@ def create_app():
                 wpa_content = Template(template.read())
                 substituted = wpa_content.substitute(
                     ssid=content['ssid'], psk=content['psk'])
+                log.info(f"Setting up wifi with subsituted conf {substituted}")
                 common_data[SCREENS_KEY][ActiveScreen.WIFI_DETAILS].begin_countdown(
                     substituted)
                 interrupt()
@@ -186,12 +186,26 @@ def create_app():
                 draw()
             return jsonify(settings)
 
+    # Used to fetch logs
+    @app.route('/logs', methods=['GET'])
+    def fetchLogs():
+        global common_data
+        global data_lock
+        with data_lock:
+            ret = []
+            with open(log_path, "r") as logs:
+                for line in logs:
+                    ret.append(line)
+            print(ret)
+            return jsonify(ret)
+
     @app.route('/showSync', methods=['POST'])
     def showSync():
         global common_data
         global data_lock
         with data_lock:
             settings = get_settings()
+            log.info("Showing sync screen")
             if settings[SETUP_STATE_KEY] == SetupState.READY.value:
                 interrupt()
                 settings[SETUP_STATE_KEY] = SetupState.SYNC.value
@@ -244,6 +258,7 @@ def create_app():
         global data_lock
         with data_lock:
             settings = get_settings()
+            log.info("Received sync command")
             if settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
                 settings[SETUP_STATE_KEY] = SetupState.READY.value
                 interrupt()
@@ -264,7 +279,6 @@ def create_app():
         global log
         with data_lock:
             settings = get_settings()
-            log.info(settings)
             log.info("Got connection command, setupstate = {}".format(
                 settings[SETUP_STATE_KEY]))
             if settings[SETUP_STATE_KEY] == SetupState.HOTSPOT.value:
