@@ -22,10 +22,11 @@ from string import Template
 from flask import jsonify
 from flask import request
 from flask import Flask
-print("Begin Scoreboard App.py")
 
 
 logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)-8s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
                     handlers=[
                         logging.FileHandler(os.path.join(
                             root_path, "../scoreboard_log"), "w"),
@@ -117,7 +118,7 @@ def create_app():
                 common_data[SCREEN_ON_KEY] = content[SCREEN_ON_KEY]
                 current_screen = common_data[ACTIVE_SCREEN_KEY]
                 if common_data[SCREEN_ON_KEY] and common_data[SCREENS_KEY][current_screen].is_stale():
-                    print("Drawing refresh screen!")
+                    log.info("Drawing refresh screen!")
                     common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
                     draw()
                 common_data[ACTIVE_SCREEN_KEY] = current_screen
@@ -145,7 +146,7 @@ def create_app():
                 content = request.get_json()
                 target_screen = ActiveScreen(content["sport"])
                 if common_data[SCREENS_KEY][target_screen].is_stale():
-                    print("Drawing refresh screen!")
+                    log.info("Drawing refresh screen!")
                     common_data[ACTIVE_SCREEN_KEY] = ActiveScreen.REFRESH
                     common_data[SCREEN_ON_KEY] = True
                     draw()
@@ -317,9 +318,9 @@ def initScreens():
         nhl_settings = next(
             screen for screen in screen_settings if screen["id"] == ActiveScreen.NHL.value)
     except:
-        print("Something went wrong while parsing screen settings")
-    print(nhl_settings)
-    print(mlb_settings)
+        log.info("Something went wrong while parsing screen settings")
+    log.info(nhl_settings)
+    log.info(mlb_settings)
     api_key = get_api_key()
     mlb = MLB(mlb_settings, api_key, get_settings()["timezone"])
     nhl = NHL(nhl_settings, api_key, get_settings()["timezone"])
@@ -347,7 +348,7 @@ def run_webserver():
 
 if __name__ == '__main__':
     # Set up the matrix options
-    print("In app main")
+    log.info("In app main")
     options = RGBMatrixOptions()
     options.brightness = 100
     options.rows = 32

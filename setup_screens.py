@@ -55,7 +55,7 @@ class SyncScreen(SetupScreen):
     def __init__(self):
         super().__init__("Enter the code below in the Scoreboard App")
         try:
-            print("IP is: {}".format(get_ip_address()))
+            log.info("IP is: {}".format(get_ip_address()))
             self.code = ip_to_code(get_ip_address())
         except:
             self.error = True

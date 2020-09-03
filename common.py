@@ -275,6 +275,7 @@ class League(Screen):
     def get_games(self, endpoint, query):
         self.error = False  # First, clear any errors
         try:
+            log.info("Fetching new games")
             response = requests.get(
                 url=AWS_URL + endpoint, json={'query': query}, headers={'x-api-key': self.api_key})
             if response.status_code == 403:
@@ -283,7 +284,7 @@ class League(Screen):
                 error_message = "Authentication failed, please contact support"
                 self.handle_error(error_title, error_message)
                 return None
-            print(response.json())
+            log.info(response.json())
             return response.json()['data']
         except Exception as e:
             log.error("Error: " + str(e))
@@ -303,7 +304,7 @@ class Renderer:
         self.text_start = self.width
 
     def draw_big_scoreboard(self, game):
-        print("Drawing big scoreboard, game " + game.id)
+        log.info("Drawing big scoreboard, game " + game.id)
         image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)  # let's draw on this image
         team_font = ImageFont.load(big_font)
@@ -330,6 +331,7 @@ class Renderer:
         return (image, draw)
 
     def draw_small_scoreboard(self, game, image=None):
+        log.info("Drawing small scoreboard, game " + game.id)
         if image is None:
             image = Image.new("RGB", (self.width, self.height))
         draw = ImageDraw.Draw(image)  # let's draw on this image
