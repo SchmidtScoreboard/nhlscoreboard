@@ -219,7 +219,8 @@ class League(Screen):
         with self.league_mutex:
             if self.is_stale():
                 # if it's been more than X seconds since the last refresh, refresh all games
-                log.info("Performing refresh")
+                log.info(
+                    f"Performing refresh, my ip address is '{get_ip_address()}'")
                 self.last_reset = time.time()
                 self.error = False  # First, clear any errors
                 refresh_thread = threading.Thread(target=self.reset)

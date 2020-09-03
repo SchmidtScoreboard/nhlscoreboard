@@ -29,13 +29,17 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S',
                     handlers=[
                         logging.FileHandler(os.path.join(
-                            root_path, "../scoreboard_log"), "w"),
+                            root_path, "../scoreboard_log"), "w+"),
                         logging.StreamHandler(sys.stdout)
                     ])
 log = logging.getLogger(__name__)
 try:
     from rgbmatrix import graphics, RGBMatrixOptions, RGBMatrix
-    log.info("Running in production mode")
+    log.info("")
+    log.info("--------------------------")
+    log.info("Starting in production mode")
+    log.info("--------------------------")
+    log.info("")
 except:
     config.testing = True
     log.info("Running in test mode")
