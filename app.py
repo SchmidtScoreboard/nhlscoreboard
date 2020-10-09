@@ -10,6 +10,7 @@ import time
 import atexit
 import threading
 import version
+import wlan
 from common import *
 from setup_screens import *
 from error import *
@@ -114,6 +115,7 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
+            log.info(f"Logging wifi status {wlan.get_name_strength_map()}")
             settings = get_settings()
             if settings[SETUP_STATE_KEY] == SetupState.READY.value:
                 interrupt()
@@ -142,6 +144,7 @@ def create_app():
         global common_data
         global data_lock
         with data_lock:
+            log.info(f"Logging wifi status {wlan.get_name_strength_map()}")
             settings = get_settings()
             if settings[SETUP_STATE_KEY] == SetupState.READY.value or settings[SETUP_STATE_KEY] == SetupState.SYNC.value:
                 settings[SETUP_STATE_KEY] = SetupState.READY.value
@@ -355,6 +358,7 @@ def initScreens():
             common_data[ACTIVE_SCREEN_KEY] = ActiveScreen(
                 get_settings()[ACTIVE_SCREEN_KEY])
     log.info("Done initScreens")
+    log.info(f"Logging wifi status {wlan.get_name_strength_map()}")
 
 
 def run_webserver():
