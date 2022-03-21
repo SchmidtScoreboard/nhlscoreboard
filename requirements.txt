@@ -3,5 +3,5 @@ requests==2.21.0
 pytz==2019.1
 Pillow==6.2.2
 python_dateutil==2.8.1
-waitress==1.4.3
+waitress==2.1.1
 gpiozero==1.5.1
